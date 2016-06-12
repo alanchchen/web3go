@@ -30,39 +30,70 @@
 package web3
 
 import (
-	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
+
+	"github.com/alanchchen/web3go/rpc"
 )
 
 // HTTPProvider provides basic web3 interface
 type HTTPProvider struct {
-	url string
+	host string
+	rpc rpc.RPC
 }
 
 // NewHTTPProvider creates a new HTTP provider
-func NewHTTPProvider(url string) *HTTPProvider {
-	return &HTTPProvider{url: url}
+func NewHTTPProvider(host string) *HTTPProvider {
+	return &HTTPProvider{host: host, rpc: rpc.GetRPCMethod()}
+}
+
+// IsConnected ...
+func (provider *HTTPProvider) IsConnected() bool {
+	req := provider.rpc.NewRequest("net_listening")
+	resp, err := provider.send(req)
+	if err != nil {
+		return false
+	}
+	result, err := strconv.ParseBool(resp.Get("result").(string))
+	if err != nil {
+		return false
+	}
+	return result
 }
 
 // Send JSON RPC request through http client
-func (provider *HTTPProvider) send(payload interface{}) (result string, err error) {
-	jsonString, err := json.Marshal(payload)
+func (provider *HTTPProvider) send(request rpc.Request) (response rpc.Response, err error) {
+	contentType := provider.determineContentType()
+	resp, err := http.Post(provider.host, contentType, strings.NewReader(request.String()))
 	if err != nil {
-		return "", err
-	}
-
-	resp, err := http.Post(provider.url, "application/json", strings.NewReader(string(jsonString)))
-	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(body), nil
+	response = provider.rpc.NewResponse(body)
+	if response == nil {
+		err = fmt.Errorf("Malformed response body, %s", string(body))
+	}
+	return response, err
+}
+
+func (provider *HTTPProvider) getRPCMethod() rpc.RPC {
+	return provider.rpc
+}
+
+func (provider *HTTPProvider) determineContentType() string {
+	switch provider.rpc.Name() {
+	case "jsonrpc":
+		return "application/json"
+	default:
+		return "application/json"
+	}
 }

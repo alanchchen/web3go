@@ -33,9 +33,20 @@ import (
 	"github.com/alanchchen/web3go/rpc"
 )
 
-// Provider provides basic web3 interface
-type Provider interface {
-	IsConnected() bool
-	send(rpc.Request) (rpc.Response, error)
-	getRPCMethod() rpc.RPC
+// RequestManager is responsible for passing messages to providers
+type RequestManager struct {
+	provider Provider
+	rpc rpc.RPC
+}
+
+func newRequestManager(provider Provider) *RequestManager {
+	return &RequestManager{provider: provider, rpc: provider.getRPCMethod()}
+}
+
+func (rm *RequestManager) newRequest(method string) rpc.Request {
+	return rm.rpc.NewRequest(method)
+}
+
+func (rm *RequestManager) send(request rpc.Request) (rpc.Response, error) {
+	return rm.provider.send(request)
 }
