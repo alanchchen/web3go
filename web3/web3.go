@@ -361,9 +361,9 @@ func (web3 *Web3) sha3Hash(data ...[]byte) []byte {
 }
 
 func (web3 *Web3) getValueOfUnit(unit string) *big.Rat {
-	u := ""
-	if strings.TrimSpace(unit) != "" {
-		u = strings.ToLower(unit)
+	u := strings.TrimSpace(unit)
+	if u != "" {
+		u = strings.ToLower(u)
 	} else {
 		u = "ether"
 	}
