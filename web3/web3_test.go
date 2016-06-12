@@ -37,7 +37,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var web3 = NewWeb3(nil)
+var web3 = NewWeb3(NewMockHTTPProvider())
 
 func Test_IsConnected(t *testing.T) {
 	assert.Equal(t, web3.IsConnected(), true, "should be true")

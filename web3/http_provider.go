@@ -45,8 +45,8 @@ type HTTPProvider struct {
 	rpc rpc.RPC
 }
 
-// NewHTTPProvider creates a new HTTP provider
-func NewHTTPProvider(host string) *HTTPProvider {
+// NewHTTPProvider creates a HTTP provider
+func NewHTTPProvider(host string) Provider {
 	return &HTTPProvider{host: host, rpc: rpc.GetRPCMethod()}
 }
 

@@ -44,8 +44,8 @@ type MockHTTPProvider struct {
 	apis map[string]func(rpc.Request) (rpc.Response, error)
 }
 
-// NewMockHTTPProvider creates a new HTTP provider
-func NewMockHTTPProvider() *MockHTTPProvider {
+// NewMockHTTPProvider creates a HTTP provider mock
+func NewMockHTTPProvider() Provider {
 	return &MockHTTPProvider{rpc: rpc.GetRPCMethod()}
 }
 
@@ -74,4 +74,8 @@ func (provider *MockHTTPProvider) dispatchMethod(method string, request rpc.Requ
 	}
 
 	return nil, fmt.Errorf("Unrecognized method %s", method)
+}
+
+func (provider *MockHTTPProvider) getRPCMethod() rpc.RPC {
+	return provider.rpc
 }
