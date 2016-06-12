@@ -33,18 +33,35 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-var net = NewNetAPI(web3)
-
-func Test_Version(t *testing.T) {
-	assert.NotEqual(t, "", net.Version(), "version is empty")
+type NetTestSuite struct {
+	suite.Suite
+	web3 *Web3
+	net  Net
 }
 
-func Test_Listening(t *testing.T) {
-	assert.Exactly(t, true, net.Listening(), "should be true")
+func (suite *NetTestSuite) Test_Version() {
+	net := suite.net
+	assert.NotEqual(suite.T(), "", net.Version(), "version is empty")
 }
 
-func Test_PeerCount(t *testing.T) {
-	assert.EqualValues(t, 50, net.PeerCount(), "should be equal")
+func (suite *NetTestSuite) Test_Listening() {
+	net := suite.net
+	assert.Exactly(suite.T(), true, net.Listening(), "should be true")
+}
+
+func (suite *NetTestSuite) Test_PeerCount() {
+	net := suite.net
+	assert.EqualValues(suite.T(), 50, net.PeerCount(), "should be equal")
+}
+
+func (suite *NetTestSuite) SetupTest() {
+	suite.web3 = NewWeb3(NewMockHTTPProvider())
+	suite.net = NewNetAPI(suite.web3)
+}
+
+func Test_NetTestSuite(t *testing.T) {
+	suite.Run(t, new(NetTestSuite))
 }
