@@ -36,7 +36,7 @@ import (
 // RequestManager is responsible for passing messages to providers
 type RequestManager struct {
 	provider Provider
-	rpc rpc.RPC
+	rpc      rpc.RPC
 }
 
 func newRequestManager(provider Provider) *RequestManager {

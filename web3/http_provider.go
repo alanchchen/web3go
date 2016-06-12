@@ -42,7 +42,7 @@ import (
 // HTTPProvider provides basic web3 interface
 type HTTPProvider struct {
 	host string
-	rpc rpc.RPC
+	rpc  rpc.RPC
 }
 
 // NewHTTPProvider creates a HTTP provider

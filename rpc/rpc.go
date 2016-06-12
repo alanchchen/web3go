@@ -47,7 +47,7 @@ type Response interface {
 // RPC defines basic methods of variety RPCs
 type RPC interface {
 	Name() string
-	NewRequest(method string, args... interface{}) Request
+	NewRequest(method string, args ...interface{}) Request
 	NewResponse(data interface{}) Response
 }
 

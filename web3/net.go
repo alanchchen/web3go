@@ -42,7 +42,7 @@ type Net interface {
 
 // NetAPI ...
 type NetAPI struct {
-	web3 *Web3
+	web3           *Web3
 	requestManager *RequestManager
 }
 

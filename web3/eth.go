@@ -82,10 +82,9 @@ type Eth interface {
 
 // EthAPI ...
 type EthAPI struct {
-	web3 *Web3
+	web3           *Web3
 	requestManager *RequestManager
 }
-
 
 // NewEthAPI ...
 // func NewEthAPI(web3 *Web3) Eth {

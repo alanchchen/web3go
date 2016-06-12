@@ -40,16 +40,16 @@ import (
 )
 
 var (
-	big1 = big.NewInt(1)
+	big1    = big.NewInt(1)
 	version = "2.0"
 )
 
 // JSONRPCRequest ...
 type JSONRPCRequest struct {
-	Version string		`json:"version"`
-	Method string		`json:"method"`
-	Params []string		`json:"params"`
-	Identifier uint64	`json:"id"`
+	Version    string   `json:"version"`
+	Method     string   `json:"method"`
+	Params     []string `json:"params"`
+	Identifier uint64   `json:"id"`
 }
 
 // Set ...
@@ -107,9 +107,9 @@ func (req *JSONRPCRequest) ID() string {
 
 // JSONRPCResponse ...
 type JSONRPCResponse struct {
-	Version string		`json:"version"`
-	Identifier uint64	`json:"id"`
-	Result interface{}	`json:"result"`
+	Version    string      `json:"version"`
+	Identifier uint64      `json:"id"`
+	Result     interface{} `json:"result"`
 }
 
 // Get ...
@@ -159,7 +159,7 @@ func (rpc *JSONRPC) Name() string {
 }
 
 // NewRequest ...
-func (rpc *JSONRPC) NewRequest(method string, args... interface{}) Request {
+func (rpc *JSONRPC) NewRequest(method string, args ...interface{}) Request {
 	request := &JSONRPCRequest{Version: version, Method: method, Identifier: rpc.newID()}
 	for _, arg := range args {
 		request.Params = append(request.Params, fmt.Sprintf("%v", arg))
@@ -177,5 +177,5 @@ func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 }
 
 func (rpc *JSONRPC) newID() uint64 {
-	return atomic.AddUint64(&rpc.messageID, 1) 
+	return atomic.AddUint64(&rpc.messageID, 1)
 }

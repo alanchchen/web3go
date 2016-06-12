@@ -34,13 +34,13 @@ import (
 	"strings"
 
 	"github.com/alanchchen/web3go/rpc"
-  	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/mock"
 )
 
 // MockHTTPProvider provides basic web3 interface
 type MockHTTPProvider struct {
 	mock mock.Mock
-	rpc rpc.RPC
+	rpc  rpc.RPC
 	apis map[string]func(rpc.Request) (rpc.Response, error)
 }
 

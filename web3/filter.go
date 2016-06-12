@@ -31,10 +31,8 @@ package web3
 
 // FilterOption ...
 type FilterOption struct {
-
 }
 
 // Filter ...
 type Filter struct {
-
 }

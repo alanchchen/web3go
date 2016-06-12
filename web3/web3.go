@@ -79,7 +79,7 @@ var (
 // Web3 Standard interface
 // See https://github.com/ethereum/wiki/wiki/JavaScript-API#web3js-api-reference
 type Web3 struct {
-	provider Provider
+	provider       Provider
 	requestManager *RequestManager
 }
 
