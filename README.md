@@ -12,7 +12,7 @@ No stable version yet
  
 # Installation
 ```shell
-go get github.com/alanchchen/web3go
+go get github.com/alanchchen/web3go/...
 ```
 
 # Usage
