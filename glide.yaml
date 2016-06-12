@@ -1,0 +1,8 @@
+package: github.com/alanchchen/web3go
+import:
+- package: github.com/stretchr/testify
+  subpackages:
+  - mock
+- package: github.com/tonnerre/golang-go.crypto
+  subpackages:
+  - sha3
