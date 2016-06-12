@@ -34,14 +34,14 @@ type Request interface {
 	Set(key string, value interface{})
 	Get(key string) interface{}
 	String() string
-	ID() string
+	ID() uint64
 }
 
 // Response defines basic methods of an RPC response
 type Response interface {
 	Get(key string) interface{}
 	String() string
-	ID() string
+	ID() uint64
 }
 
 // RPC defines basic methods of variety RPCs

@@ -34,7 +34,6 @@ import (
 	"fmt"
 	"math/big"
 	"reflect"
-	"strconv"
 	"strings"
 	"sync/atomic"
 )
@@ -99,8 +98,8 @@ func (req *JSONRPCRequest) String() string {
 }
 
 // ID ...
-func (req *JSONRPCRequest) ID() string {
-	return strconv.FormatUint(req.Identifier, 10)
+func (req *JSONRPCRequest) ID() uint64 {
+	return req.Identifier
 }
 
 // -----------------------------------------------------------------------------
@@ -137,8 +136,8 @@ func (resp *JSONRPCResponse) String() string {
 }
 
 // ID ...
-func (resp *JSONRPCResponse) ID() string {
-	return strconv.FormatUint(resp.Identifier, 10)
+func (resp *JSONRPCResponse) ID() uint64 {
+	return resp.Identifier
 }
 
 // -----------------------------------------------------------------------------
@@ -170,10 +169,12 @@ func (rpc *JSONRPC) NewRequest(method string, args ...interface{}) Request {
 // NewResponse ...
 func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 	response := &JSONRPCResponse{}
-	if err := json.Unmarshal(data.([]byte), &response); err != nil {
-		return nil
+	if b, err := json.Marshal(data); err == nil {
+		if err := json.Unmarshal(b, &response); err == nil {
+			return response
+		}
 	}
-	return response
+	return nil
 }
 
 func (rpc *JSONRPC) newID() uint64 {
