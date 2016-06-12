@@ -29,56 +29,69 @@
 
 package web3
 
-import "strconv"
+import (
+	"fmt"
 
-// Net ...
-type Net interface {
-	Version() string
-	PeerCount() uint64
-	Listening() bool
+	"github.com/alanchchen/web3go/rpc"
+)
+
+// MockNetAPI ...
+type MockNetAPI struct {
+	rpc rpc.RPC
 }
 
-// NetAPI ...
-type NetAPI struct {
-	web3           *Web3
-	requestManager *RequestManager
+// NewMockNetAPI ...
+func NewMockNetAPI(rpc rpc.RPC) MockAPI {
+	return &MockNetAPI{rpc: rpc}
 }
 
-// NewNetAPI ...
-func NewNetAPI(web3 *Web3) Net {
-	return &NetAPI{web3: web3, requestManager: web3.requestManager}
-}
-
-// Version returns the current network protocol version.
-func (net *NetAPI) Version() string {
-	req := net.requestManager.newRequest("net_version")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
+// Do ...
+func (net *MockNetAPI) Do(request rpc.Request) (response rpc.Response, err error) {
+	method := request.Get("method").(string)
+	switch method {
+	case "net_version":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			"100",
+		}
+		if resp := net.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
+	case "net_listening":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			true,
+		}
+		if resp := net.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
+	case "net_peerCount":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			"0x32",
+		}
+		if resp := net.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
 	}
-	return resp.Get("result").(string)
-}
 
-// PeerCount returns number of peers currenly connected to the client.
-func (net *NetAPI) PeerCount() uint64 {
-	req := net.requestManager.newRequest("net_peerCount")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	result, err := strconv.ParseUint(hexStringToString(resp.Get("result").(string)), 16, 64)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
-// Listening returns true if client is actively listening for network connections.
-func (net *NetAPI) Listening() bool {
-	req := net.requestManager.newRequest("net_listening")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Get("result").(bool)
+	return nil, fmt.Errorf("Invalid method %s", method)
 }

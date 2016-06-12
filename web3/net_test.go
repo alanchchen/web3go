@@ -29,56 +29,22 @@
 
 package web3
 
-import "strconv"
+import (
+	"testing"
 
-// Net ...
-type Net interface {
-	Version() string
-	PeerCount() uint64
-	Listening() bool
+	"github.com/stretchr/testify/assert"
+)
+
+var net = NewNetAPI(web3)
+
+func Test_Version(t *testing.T) {
+	assert.NotEqual(t, "", net.Version(), "version is empty")
 }
 
-// NetAPI ...
-type NetAPI struct {
-	web3           *Web3
-	requestManager *RequestManager
+func Test_Listening(t *testing.T) {
+	assert.Exactly(t, true, net.Listening(), "should be true")
 }
 
-// NewNetAPI ...
-func NewNetAPI(web3 *Web3) Net {
-	return &NetAPI{web3: web3, requestManager: web3.requestManager}
-}
-
-// Version returns the current network protocol version.
-func (net *NetAPI) Version() string {
-	req := net.requestManager.newRequest("net_version")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Get("result").(string)
-}
-
-// PeerCount returns number of peers currenly connected to the client.
-func (net *NetAPI) PeerCount() uint64 {
-	req := net.requestManager.newRequest("net_peerCount")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	result, err := strconv.ParseUint(hexStringToString(resp.Get("result").(string)), 16, 64)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
-// Listening returns true if client is actively listening for network connections.
-func (net *NetAPI) Listening() bool {
-	req := net.requestManager.newRequest("net_listening")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Get("result").(bool)
+func Test_PeerCount(t *testing.T) {
+	assert.EqualValues(t, 50, net.PeerCount(), "should be equal")
 }

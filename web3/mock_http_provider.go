@@ -37,16 +37,25 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockAPI ...
+type MockAPI interface {
+	Do(rpc.Request) (rpc.Response, error)
+}
+
 // MockHTTPProvider provides basic web3 interface
 type MockHTTPProvider struct {
 	mock mock.Mock
 	rpc  rpc.RPC
-	apis map[string]func(rpc.Request) (rpc.Response, error)
+	apis map[string]MockAPI
 }
 
 // NewMockHTTPProvider creates a HTTP provider mock
 func NewMockHTTPProvider() Provider {
-	return &MockHTTPProvider{rpc: rpc.GetRPCMethod()}
+	rpc := rpc.GetRPCMethod()
+	return &MockHTTPProvider{rpc: rpc,
+		apis: map[string]MockAPI{
+			"net": NewMockNetAPI(rpc),
+		}}
 }
 
 // IsConnected ...
@@ -69,10 +78,9 @@ func (provider *MockHTTPProvider) send(request rpc.Request) (response rpc.Respon
 func (provider *MockHTTPProvider) dispatchMethod(method string, request rpc.Request) (response rpc.Response, err error) {
 	if index := strings.Index(method, "_"); index > 0 {
 		if api, ok := provider.apis[method[:index]]; ok {
-			return api(request)
+			return api.Do(request)
 		}
 	}
-
 	return nil, fmt.Errorf("Unrecognized method %s", method)
 }
 
