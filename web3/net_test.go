@@ -59,7 +59,7 @@ func (suite *NetTestSuite) Test_PeerCount() {
 
 func (suite *NetTestSuite) SetupTest() {
 	suite.web3 = NewWeb3(NewMockHTTPProvider())
-	suite.net = NewNetAPI(suite.web3)
+	suite.net = suite.web3.Net
 }
 
 func Test_NetTestSuite(t *testing.T) {

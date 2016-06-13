@@ -40,13 +40,12 @@ type Net interface {
 
 // NetAPI ...
 type NetAPI struct {
-	web3           *Web3
 	requestManager *RequestManager
 }
 
 // NewNetAPI ...
-func NewNetAPI(web3 *Web3) Net {
-	return &NetAPI{web3: web3, requestManager: web3.requestManager}
+func newNetAPI(requestManager *RequestManager) Net {
+	return &NetAPI{requestManager: requestManager}
 }
 
 // Version returns the current network protocol version.
