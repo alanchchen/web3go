@@ -81,6 +81,7 @@ var (
 type Web3 struct {
 	provider       Provider
 	requestManager *RequestManager
+	Eth            Eth
 	Net            Net
 }
 
@@ -90,6 +91,7 @@ func NewWeb3(provider Provider) *Web3 {
 	return &Web3{
 		provider:       provider,
 		requestManager: requestManager,
+		Eth:            newEthAPI(requestManager),
 		Net:            newNetAPI(requestManager)}
 }
 

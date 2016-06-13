@@ -31,6 +31,8 @@ package web3
 
 import (
 	"math/big"
+
+	"github.com/alanchchen/web3go/rpc"
 )
 
 // Eth ...
@@ -82,15 +84,177 @@ type Eth interface {
 
 // EthAPI ...
 type EthAPI struct {
-	web3           *Web3
+	rpc            rpc.RPC
 	requestManager *RequestManager
 }
 
 // NewEthAPI ...
-// func NewEthAPI(web3 *Web3) Eth {
-// 	return &EthAPI{web3: web3, requestManager: web3.requestManager}
-// }
+func newEthAPI(requestManager *RequestManager) Eth {
+	return &EthAPI{requestManager: requestManager}
+}
 
-// func (eth *EthAPI) ProtocolVersion() string {
+func (eth *EthAPI) ProtocolVersion() string {
+	return ""
+}
 
-// }
+func (eth *EthAPI) Syncing() bool {
+	return false
+}
+
+func (eth *EthAPI) Coinbase() (addr Address) {
+	addrString := "00000000000000000000"
+	copy(addr[:], addrString)
+	return addr
+}
+
+func (eth *EthAPI) Mining() bool {
+	return false
+}
+
+func (eth *EthAPI) HashRate() uint64 {
+	return 0
+}
+
+func (eth *EthAPI) GasPrice() *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) Accounts() []Address {
+	return nil
+}
+
+func (eth *EthAPI) BlockNumber() *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetBalance(address Address, quantity *BlockIndicator) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetStorageAt(address Address, position uint64, quantity *BlockIndicator) []byte {
+	return nil
+}
+
+func (eth *EthAPI) GetTransactionCount(address Address, quantity *BlockIndicator) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetBlockTransactionCountByHash(hash Hash) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetBlockTransactionCountByNumber(quantity *BlockIndicator) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetUncleCountByBlockHash(hash Hash) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetUncleCountByBlockNumber(quantity *BlockIndicator) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetCode(address Address, quantity *BlockIndicator) []byte {
+	return nil
+}
+
+func (eth *EthAPI) Sign(address Address, data []byte) []byte {
+	return nil
+}
+
+func (eth *EthAPI) SendTransaction(tx *TransactionRequest) (hash Hash) {
+	hashString := "00000000000000000000000000000000"
+	copy(hash[:], hashString)
+	return hash
+}
+
+func (eth *EthAPI) SendRawTransaction(tx []byte) (hash Hash) {
+	hashString := "00000000000000000000000000000000"
+	copy(hash[:], hashString)
+	return hash
+}
+
+func (eth *EthAPI) Call(tx *TransactionRequest, quantity *BlockIndicator) []byte {
+	return nil
+}
+
+func (eth *EthAPI) EstimateGas(tx *Transaction, quantity *BlockIndicator) *big.Int {
+	return nil
+}
+
+func (eth *EthAPI) GetBlockByHash(hash Hash, full bool) *Block {
+	return nil
+}
+
+func (eth *EthAPI) GetBlockByNumber(quantity *BlockIndicator, full bool) *Block {
+	return nil
+}
+
+func (eth *EthAPI) GetTransactionByHash(hash Hash) *Transaction {
+	return nil
+}
+
+func (eth *EthAPI) GetTransactionByBlockHashAndIndex(hash Hash, index uint64) *Transaction {
+	return nil
+}
+
+func (eth *EthAPI) GetTransactionByBlockNumberAndIndex(quantity *BlockIndicator, index uint64) *Transaction {
+	return nil
+}
+
+func (eth *EthAPI) GetTransactionReceipt(hash Hash) *TransactionReceipt {
+	return nil
+}
+
+func (eth *EthAPI) GetUncleByBlockHashAndIndex(hash Hash, index uint64) *Block {
+	return nil
+}
+
+func (eth *EthAPI) GetUncleByBlockNumberAndIndex(quantity *BlockIndicator, index uint64) *Block {
+	return nil
+}
+
+func (eth *EthAPI) GetCompilers() []string {
+	return nil
+}
+
+func (eth *EthAPI) NewFilter(option *FilterOption) *Filter {
+	return nil
+}
+
+func (eth *EthAPI) NewBlockFilter() *Filter {
+	return nil
+}
+
+func (eth *EthAPI) NewPendingTransactionFilter() *Filter {
+	return nil
+}
+
+func (eth *EthAPI) UninstallFilter(filter *Filter) bool {
+	return false
+}
+
+func (eth *EthAPI) GetFilterChanges(filter *Filter) []Log {
+	return nil
+}
+
+func (eth *EthAPI) GetFilterLogs(filter *Filter) []Log {
+	return nil
+}
+
+func (eth *EthAPI) GetLogs(filter *Filter) []Log {
+	return nil
+}
+
+func (eth *EthAPI) GetWork() (header Hash, seed Hash, boundary Hash) {
+	hashString := "00000000000000000000000000000000"
+	copy(header[:], hashString)
+	copy(seed[:], hashString)
+	copy(boundary[:], hashString)
+	return header, seed, boundary
+}
+
+func (eth *EthAPI) SubmitWork(nonce uint64, header Hash, mixDigest Hash) bool {
+	return false
+}
