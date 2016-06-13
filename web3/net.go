@@ -65,7 +65,7 @@ func (net *NetAPI) PeerCount() uint64 {
 	if err != nil {
 		panic(err)
 	}
-	result, err := strconv.ParseUint(hexStringToString(resp.Get("result").(string)), 16, 64)
+	result, err := strconv.ParseUint(HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		panic(err)
 	}

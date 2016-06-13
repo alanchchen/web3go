@@ -129,30 +129,26 @@ checkEncoding:
 	switch options.(type) {
 	case string:
 		if err := json.Unmarshal([]byte(options.(string)), &opt); err != nil {
-			return "0x" + web3.bytesToHex(web3.sha3Hash([]byte(data)))
+			return BytesToHex(web3.sha3Hash([]byte(data)))
 		}
 		break checkEncoding
 	default:
 		var err error
 		var optBytes []byte
 		if optBytes, err = json.Marshal(options); err != nil {
-			return "0x" + web3.bytesToHex(web3.sha3Hash([]byte(data)))
+			return BytesToHex(web3.sha3Hash([]byte(data)))
 		}
 
 		if err = json.Unmarshal(optBytes, &opt); err != nil {
-			return "0x" + web3.bytesToHex(web3.sha3Hash([]byte(data)))
+			return BytesToHex(web3.sha3Hash([]byte(data)))
 		}
 		break checkEncoding
 	}
 
 	if opt.Encoding == "hex" {
-		d := data
-		if strings.Index(data, "0x") == 0 {
-			d = strings.Replace(data, "0x", "", -1)
-		}
-		return "0x" + web3.bytesToHex(web3.sha3Hash(web3.hexToBytes(d)))
+		return BytesToHex(web3.sha3Hash(HexToBytes(data)))
 	}
-	return "0x" + web3.bytesToHex(web3.sha3Hash([]byte(data)))
+	return BytesToHex(web3.sha3Hash([]byte(data)))
 }
 
 // ToHex converts any value into HEX.
@@ -171,9 +167,9 @@ func (web3 *Web3) ToHex(value interface{}) string {
 		}
 		unquoted, err := strconv.Unquote(string(jsonBytes))
 		if err != nil {
-			return "0x" + web3.bytesToHex(jsonBytes)
+			BytesToHex(jsonBytes)
 		}
-		return "0x" + web3.bytesToHex([]byte(unquoted))
+		return BytesToHex([]byte(unquoted))
 	case *big.Int:
 		return web3.FromDecimal(value)
 	default:
@@ -181,13 +177,13 @@ func (web3 *Web3) ToHex(value interface{}) string {
 		if err != nil {
 			return web3.FromDecimal(value)
 		}
-		return "0x" + web3.bytesToHex(jsonBytes)
+		return BytesToHex(jsonBytes)
 	}
 }
 
 // ToASCII converts a HEX string into a ASCII string.
 func (web3 *Web3) ToASCII(hexString string) string {
-	return string(bytes.Trim(web3.hexToBytes(hexString), "\x00"))
+	return string(bytes.Trim(HexToBytes(hexString), "\x00"))
 }
 
 // FromASCII converts any ASCII string to a HEX string.
@@ -332,31 +328,6 @@ func (web3 *Web3) isChecksumAddress(address string) bool {
 		}
 	}
 	return true
-}
-
-func (web3 *Web3) bytesToHex(data []byte) string {
-	buffer := new(bytes.Buffer)
-	for _, b := range data {
-		s := strconv.FormatInt(int64(b&0xFF), 16)
-		if len(s) == 1 {
-			buffer.WriteString("0")
-		}
-		buffer.WriteString(s)
-	}
-	return buffer.String()
-}
-
-func (web3 *Web3) hexToBytes(hex string) []byte {
-	length := len(hex) / 2
-	slice := make([]byte, length)
-	rs := []rune(hex)
-
-	for i := 0; i < length; i++ {
-		s := string(rs[i*2 : i*2+2])
-		value, _ := strconv.ParseInt(s, 16, 10)
-		slice[i] = byte(value & 0xFF)
-	}
-	return slice
 }
 
 func (web3 *Web3) sha3Hash(data ...[]byte) []byte {
