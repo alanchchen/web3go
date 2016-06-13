@@ -29,9 +29,7 @@
 
 package web3
 
-import (
-	"math/big"
-)
+import "math/big"
 
 const (
 	hashLength    = 32
@@ -41,12 +39,22 @@ const (
 // Hash ...
 type Hash [hashLength]byte
 
+func (hash *Hash) String() (result string) {
+	return "0x" + string(hash[:hashLength])
+}
+
 // Address ...
 type Address [addressLength]byte
 
-// BlockIndicator ...
-type BlockIndicator struct {
-	Block interface{}
+func (addr *Address) String() (result string) {
+	return "0x" + string(addr[:addressLength])
+}
+
+// SyncStatus ...
+type SyncStatus struct {
+	StartingBlock *big.Int
+	CurrentBlock  *big.Int
+	HighestBlock  *big.Int
 }
 
 // TransactionRequest ...
