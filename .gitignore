@@ -25,5 +25,5 @@ _testmain.go
 
 vendor
 .vscode
-
+.DS_Store
 coverage.txt
