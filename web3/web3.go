@@ -39,6 +39,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/alanchchen/web3go/provider"
 	"github.com/tonnerre/golang-go.crypto/sha3"
 )
 
@@ -79,14 +80,14 @@ var (
 // Web3 Standard interface
 // See https://github.com/ethereum/wiki/wiki/JavaScript-API#web3js-api-reference
 type Web3 struct {
-	provider       Provider
+	provider       provider.Provider
 	requestManager *RequestManager
 	Eth            Eth
 	Net            Net
 }
 
 // NewWeb3 creates a new web3 object.
-func NewWeb3(provider Provider) *Web3 {
+func NewWeb3(provider provider.Provider) *Web3 {
 	requestManager := newRequestManager(provider)
 	return &Web3{
 		provider:       provider,
@@ -101,12 +102,12 @@ func (web3 *Web3) IsConnected() bool {
 }
 
 // SetProvider sets provider.
-func (web3 *Web3) SetProvider(provider Provider) {
+func (web3 *Web3) SetProvider(provider provider.Provider) {
 	web3.provider = provider
 }
 
 // CurrentProvider returns the current provider.
-func (web3 *Web3) CurrentProvider() Provider {
+func (web3 *Web3) CurrentProvider() provider.Provider {
 	return web3.provider
 }
 

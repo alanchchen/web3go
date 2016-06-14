@@ -27,7 +27,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package provider
 
 import (
 	"github.com/alanchchen/web3go/rpc"
@@ -36,6 +36,6 @@ import (
 // Provider provides basic web3 interface
 type Provider interface {
 	IsConnected() bool
-	send(rpc.Request) (rpc.Response, error)
-	getRPCMethod() rpc.RPC
+	Send(rpc.Request) (rpc.Response, error)
+	GetRPCMethod() rpc.RPC
 }

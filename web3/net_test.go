@@ -32,6 +32,7 @@ package web3
 import (
 	"testing"
 
+	"github.com/alanchchen/web3go/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -58,7 +59,7 @@ func (suite *NetTestSuite) Test_PeerCount() {
 }
 
 func (suite *NetTestSuite) SetupTest() {
-	suite.web3 = NewWeb3(NewMockHTTPProvider())
+	suite.web3 = NewWeb3(test.NewMockHTTPProvider())
 	suite.net = suite.web3.Net
 }
 

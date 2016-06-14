@@ -27,73 +27,71 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package test
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/alanchchen/web3go/rpc"
 )
 
-// HTTPProvider provides basic web3 interface
-type HTTPProvider struct {
-	host string
-	rpc  rpc.RPC
+// MockNetAPI ...
+type MockNetAPI struct {
+	rpc rpc.RPC
 }
 
-// NewHTTPProvider creates a HTTP provider
-func NewHTTPProvider(host string) Provider {
-	return &HTTPProvider{host: host, rpc: rpc.GetRPCMethod()}
+// NewMockNetAPI ...
+func NewMockNetAPI(rpc rpc.RPC) MockAPI {
+	return &MockNetAPI{rpc: rpc}
 }
 
-// IsConnected ...
-func (provider *HTTPProvider) IsConnected() bool {
-	req := provider.rpc.NewRequest("net_listening")
-	resp, err := provider.send(req)
-	if err != nil {
-		return false
+// Do ...
+func (net *MockNetAPI) Do(request rpc.Request) (response rpc.Response, err error) {
+	method := request.Get("method").(string)
+	switch method {
+	case "net_version":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			"100",
+		}
+		if resp := net.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
+	case "net_listening":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			true,
+		}
+		if resp := net.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
+	case "net_peerCount":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			"0x32",
+		}
+		if resp := net.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
 	}
-	result, err := strconv.ParseBool(resp.Get("result").(string))
-	if err != nil {
-		return false
-	}
-	return result
-}
 
-// Send JSON RPC request through http client
-func (provider *HTTPProvider) send(request rpc.Request) (response rpc.Response, err error) {
-	contentType := provider.determineContentType()
-	resp, err := http.Post(provider.host, contentType, strings.NewReader(request.String()))
-	if err != nil {
-		return nil, err
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	response = provider.rpc.NewResponse(body)
-	if response == nil {
-		err = fmt.Errorf("Malformed response body, %s", string(body))
-	}
-	return response, err
-}
-
-func (provider *HTTPProvider) getRPCMethod() rpc.RPC {
-	return provider.rpc
-}
-
-func (provider *HTTPProvider) determineContentType() string {
-	switch provider.rpc.Name() {
-	case "jsonrpc":
-		return "application/json"
-	default:
-		return "application/json"
-	}
+	return nil, fmt.Errorf("Invalid method %s", method)
 }

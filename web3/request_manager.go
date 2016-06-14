@@ -30,17 +30,18 @@
 package web3
 
 import (
+	"github.com/alanchchen/web3go/provider"
 	"github.com/alanchchen/web3go/rpc"
 )
 
 // RequestManager is responsible for passing messages to providers
 type RequestManager struct {
-	provider Provider
+	provider provider.Provider
 	rpc      rpc.RPC
 }
 
-func newRequestManager(provider Provider) *RequestManager {
-	return &RequestManager{provider: provider, rpc: provider.getRPCMethod()}
+func newRequestManager(provider provider.Provider) *RequestManager {
+	return &RequestManager{provider: provider, rpc: provider.GetRPCMethod()}
 }
 
 func (rm *RequestManager) newRequest(method string) rpc.Request {
@@ -48,5 +49,5 @@ func (rm *RequestManager) newRequest(method string) rpc.Request {
 }
 
 func (rm *RequestManager) send(request rpc.Request) (rpc.Response, error) {
-	return rm.provider.send(request)
+	return rm.provider.Send(request)
 }

@@ -33,6 +33,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/alanchchen/web3go/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -167,7 +168,7 @@ func (suite *Web3TestSuite) Test_IsAddress() {
 }
 
 func (suite *Web3TestSuite) SetupTest() {
-	suite.web3 = NewWeb3(NewMockHTTPProvider())
+	suite.web3 = NewWeb3(test.NewMockHTTPProvider())
 }
 
 func Test_Web3TestSuite(t *testing.T) {

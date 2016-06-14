@@ -27,12 +27,13 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package test
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/alanchchen/web3go/provider"
 	"github.com/alanchchen/web3go/rpc"
 	"github.com/stretchr/testify/mock"
 )
@@ -50,7 +51,7 @@ type MockHTTPProvider struct {
 }
 
 // NewMockHTTPProvider creates a HTTP provider mock
-func NewMockHTTPProvider() Provider {
+func NewMockHTTPProvider() provider.Provider {
 	rpc := rpc.GetRPCMethod()
 	return &MockHTTPProvider{rpc: rpc,
 		apis: map[string]MockAPI{
@@ -64,7 +65,7 @@ func (provider *MockHTTPProvider) IsConnected() bool {
 }
 
 // Send JSON RPC request through http client
-func (provider *MockHTTPProvider) send(request rpc.Request) (response rpc.Response, err error) {
+func (provider *MockHTTPProvider) Send(request rpc.Request) (response rpc.Response, err error) {
 	m := request.Get("method")
 	switch m.(type) {
 	case string:
@@ -84,6 +85,6 @@ func (provider *MockHTTPProvider) dispatchMethod(method string, request rpc.Requ
 	return nil, fmt.Errorf("Unrecognized method %s", method)
 }
 
-func (provider *MockHTTPProvider) getRPCMethod() rpc.RPC {
+func (provider *MockHTTPProvider) GetRPCMethod() rpc.RPC {
 	return provider.rpc
 }
