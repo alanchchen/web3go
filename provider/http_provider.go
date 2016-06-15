@@ -47,6 +47,9 @@ type HTTPProvider struct {
 
 // NewHTTPProvider creates a HTTP provider
 func NewHTTPProvider(host string) Provider {
+	if !strings.HasPrefix(host, "http://") {
+		host = "http://" + host
+	}
 	return &HTTPProvider{host: host, rpc: rpc.GetRPCMethod()}
 }
 

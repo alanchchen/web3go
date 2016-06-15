@@ -33,21 +33,21 @@ import "math/big"
 
 const (
 	hashLength    = 32
-	addressLength = 20
+	addressLength = 40
 )
 
 // Hash ...
 type Hash [hashLength]byte
 
 func (hash *Hash) String() (result string) {
-	return "0x" + string(hash[:hashLength])
+	return "0x" + string(hash[:])
 }
 
 // Address ...
 type Address [addressLength]byte
 
 func (addr *Address) String() (result string) {
-	return "0x" + string(addr[:addressLength])
+	return "0x" + string(addr[:])
 }
 
 // SyncStatus ...

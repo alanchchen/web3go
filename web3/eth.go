@@ -185,9 +185,9 @@ func (eth *EthAPI) Accounts() (addrs []Address) {
 	if err != nil {
 		panic(err)
 	}
-	results := resp.Get("result").([]string)
+	results := resp.Get("result").([]interface{})
 	for _, r := range results {
-		addrs = append(addrs, StringToAddress(r))
+		addrs = append(addrs, StringToAddress(r.(string)))
 	}
 	return addrs
 }

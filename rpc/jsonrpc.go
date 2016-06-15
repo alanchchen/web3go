@@ -30,6 +30,8 @@
 package rpc
 
 import (
+	"bytes"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -45,7 +47,7 @@ var (
 
 // JSONRPCRequest ...
 type JSONRPCRequest struct {
-	Version    string   `json:"version"`
+	Version    string   `json:"version,omitempty"`
 	Method     string   `json:"method"`
 	Params     []string `json:"params"`
 	Identifier uint64   `json:"id"`
@@ -169,9 +171,23 @@ func (rpc *JSONRPC) NewRequest(method string, args ...interface{}) Request {
 // NewResponse ...
 func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 	response := &JSONRPCResponse{}
-	if b, err := json.Marshal(data); err == nil {
-		if err := json.Unmarshal(b, &response); err == nil {
+	switch data.(type) {
+	case []byte:
+		d := data.([]byte)
+		if err := json.Unmarshal(d, response); err == nil {
 			return response
+		}
+	default:
+		if b, err := json.Marshal(data); err == nil {
+			if err := json.Unmarshal(b, response); err == nil {
+				return response
+			}
+		} else {
+			if b, err := toBytes(data); err == nil {
+				if err := json.Unmarshal(b, response); err == nil {
+					return response
+				}
+			}
 		}
 	}
 	return nil
@@ -179,4 +195,14 @@ func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 
 func (rpc *JSONRPC) newID() uint64 {
 	return atomic.AddUint64(&rpc.messageID, 1)
+}
+
+func toBytes(data interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(data)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
