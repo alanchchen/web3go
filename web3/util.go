@@ -31,6 +31,7 @@ package web3
 
 import (
 	"bytes"
+	"encoding/gob"
 	"regexp"
 	"strconv"
 	"strings"
@@ -84,4 +85,14 @@ func StringToHash(s string) (hash Hash) {
 	s = HexToString(s)
 	copy(hash[:], s)
 	return hash
+}
+
+func ToBytes(data interface{}) ([]byte, error) {
+	var buf bytes.Buffer
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(data)
+	if err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
