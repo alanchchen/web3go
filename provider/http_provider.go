@@ -33,7 +33,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/alanchchen/web3go/rpc"
@@ -60,11 +59,7 @@ func (provider *HTTPProvider) IsConnected() bool {
 	if err != nil {
 		return false
 	}
-	result, err := strconv.ParseBool(resp.Get("result").(string))
-	if err != nil {
-		return false
-	}
-	return result
+	return resp.Get("result").(bool)
 }
 
 // Send JSON RPC request through http client

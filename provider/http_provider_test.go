@@ -28,3 +28,77 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 package provider
+
+import (
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/alanchchen/web3go/rpc"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+)
+
+type HTTPProviderTestSuite struct {
+	suite.Suite
+	server   *httptest.Server
+	provider Provider
+}
+
+func (suite *HTTPProviderTestSuite) Test_IsConnected() {
+	provider := suite.provider
+	assert.EqualValues(suite.T(), true, provider.IsConnected(), "should be equal")
+}
+
+func (suite *HTTPProviderTestSuite) Test_Send() {
+	provider := suite.provider
+	req := &rpc.JSONRPCRequest{
+		Version:    "2.0",
+		Method:     "test_method",
+		Params:     nil,
+		Identifier: 10}
+	resp, err := provider.Send(req)
+
+	assert.Nil(suite.T(), err, "Should be nil")
+	assert.EqualValues(suite.T(), req.Version, req.Version, "should be equal")
+	assert.EqualValues(suite.T(), req.Identifier, resp.ID(), "should be equal")
+	assert.EqualValues(suite.T(), "ok", resp.Get("result").(string), "should be equal")
+}
+
+func (suite *HTTPProviderTestSuite) Test_GetRPCMethod() {
+	provider := suite.provider
+	assert.NotNil(suite.T(), provider.GetRPCMethod(), "should be equal")
+}
+
+func (suite *HTTPProviderTestSuite) SetupTest() {
+	suite.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		decoder := json.NewDecoder(r.Body)
+		req := rpc.JSONRPCRequest{}
+		resp := rpc.JSONRPCResponse{Version: "2.0"}
+		err := decoder.Decode(&req)
+		if err != nil {
+			resp.Identifier = 0
+			resp.Result = "error"
+		} else {
+			resp.Identifier = req.Identifier
+			switch req.Method {
+			case "net_listening":
+				resp.Result = true
+			default:
+				resp.Result = "ok"
+			}
+		}
+		jsonBlob, _ := json.Marshal(resp)
+		w.Write(jsonBlob)
+	}))
+	suite.provider = NewHTTPProvider(suite.server.URL)
+}
+
+func (suite *HTTPProviderTestSuite) TearDownTest() {
+	suite.server.Close()
+}
+
+func Test_HTTPProviderTestSuite(t *testing.T) {
+	suite.Run(t, new(HTTPProviderTestSuite))
+}
