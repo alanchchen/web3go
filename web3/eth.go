@@ -629,7 +629,7 @@ func (eth *EthAPI) NewPendingTransactionFilter() *filter.PendingTransactionFilte
 // requested with eth_getFilterChanges for a period of time.
 func (eth *EthAPI) UninstallFilter(filter filter.Filter) bool {
 	req := eth.requestManager.newRequest("eth_uninstallFilter")
-	req.Set("param", fmt.Sprintf("%x", filter.ID()))
+	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		panic(err)
@@ -642,7 +642,7 @@ func (eth *EthAPI) UninstallFilter(filter filter.Filter) bool {
 // which occurred since last poll.
 func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log) {
 	req := eth.requestManager.newRequest("eth_getFilterChanges")
-	req.Set("param", fmt.Sprintf("%x", filter.ID()))
+	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		panic(err)
@@ -661,7 +661,7 @@ func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log) 
 // GetFilterLogs returns an array of all logs matching filter with given id.
 func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log) {
 	req := eth.requestManager.newRequest("eth_getFilterLogs")
-	req.Set("param", fmt.Sprintf("%x", filter.ID()))
+	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		panic(err)
@@ -680,7 +680,7 @@ func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log) {
 // GetLogs returns an array of all logs matching a given filter object.
 func (eth *EthAPI) GetLogs(filter filter.Filter) (result []common.Log) {
 	req := eth.requestManager.newRequest("eth_getLogs")
-	req.Set("param", fmt.Sprintf("%x", filter.ID()))
+	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		panic(err)
@@ -716,7 +716,7 @@ func (eth *EthAPI) GetWork() (header common.Hash, seed common.Hash, boundary com
 func (eth *EthAPI) SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) bool {
 	req := eth.requestManager.newRequest("eth_submitWork")
 	req.Set("params", []string{
-		fmt.Sprintf("%16x", nonce),
+		fmt.Sprintf("0x%16x", nonce),
 		header.String(),
 		mixDigest.String(),
 	})
