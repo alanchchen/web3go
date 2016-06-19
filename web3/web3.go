@@ -297,12 +297,6 @@ func (web3 *Web3) ToBigNumber(value interface{}) (result *big.Rat) {
 
 // IsAddress checks if the given string is an address.
 func (web3 *Web3) IsAddress(address string) bool {
-	// basicMatcher := regexp.MustCompile("^(0x)?[0-9a-f]{40}$")
-	// basicmatched := basicMatcher.MatchString(address)
-	// if !basicmatched {
-	// 	return false
-	// }
-
 	smallCapsMatcher := regexp.MustCompile("^(0x)?[0-9a-f]{40}$")
 	smallCapsMatched := smallCapsMatcher.MatchString(address)
 	allCapsMatcher := regexp.MustCompile("^(0x)?[0-9A-F]{40}$")

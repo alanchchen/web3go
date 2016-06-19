@@ -27,74 +27,19 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package filter
 
-import (
-	"bytes"
-	"encoding/gob"
-	"regexp"
-	"strconv"
-	"strings"
-
-	"github.com/alanchchen/web3go/common"
-)
-
-func IsHex(hex string) bool {
-	hexMatcher := regexp.MustCompile("0[xX][0-9a-fA-F]+")
-	return hexMatcher.MatchString(hex)
+// BlockFilter ...
+type BlockFilter struct {
+	BaseFilter
 }
 
-func HexToString(hex string) string {
-	if strings.Index(hex, "0x") == 0 || strings.Index(hex, "0X") == 0 {
-		return hex[2:]
+// NewBlockFilter creates a BlockFilter with corresponding filter id
+func NewBlockFilter(id uint64) *BlockFilter {
+	return &BlockFilter{
+		BaseFilter{
+			option:   &Option{},
+			filterID: id,
+		},
 	}
-	return hex
-}
-
-func BytesToHex(data []byte) string {
-	buffer := new(bytes.Buffer)
-	for _, b := range data {
-		s := strconv.FormatInt(int64(b&0xFF), 16)
-		if len(s) == 1 {
-			buffer.WriteString("0")
-		}
-		buffer.WriteString(s)
-	}
-	return "0x" + buffer.String()
-}
-
-func HexToBytes(hex string) []byte {
-	hex = HexToString(hex)
-	length := len(hex) / 2
-	slice := make([]byte, length)
-	rs := []rune(hex)
-
-	for i := 0; i < length; i++ {
-		s := string(rs[i*2 : i*2+2])
-		value, _ := strconv.ParseInt(s, 16, 10)
-		slice[i] = byte(value & 0xFF)
-	}
-	return slice
-}
-
-func StringToAddress(s string) (addr common.Address) {
-	s = HexToString(s)
-	copy(addr[:], s)
-	return addr
-}
-
-func StringToHash(s string) (hash common.Hash) {
-	s = HexToString(s)
-	copy(hash[:], s)
-	return hash
-}
-
-func ToBytes(data interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(data)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }

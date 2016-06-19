@@ -27,9 +27,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package common
 
-import "math/big"
+import (
+	"encoding/json"
+	"math/big"
+)
 
 const (
 	hashLength    = 32
@@ -67,6 +70,11 @@ type TransactionRequest struct {
 	Data     []byte   `json:"data"`
 }
 
+func (tx *TransactionRequest) String() string {
+	jsonBytes, _ := json.Marshal(tx)
+	return string(jsonBytes)
+}
+
 // Transaction ...
 type Transaction struct {
 	Hash             Hash     `json:"hash"`
@@ -82,6 +90,29 @@ type Transaction struct {
 	Data             []byte   `json:"input"`
 }
 
+func (tx *Transaction) String() string {
+	jsonBytes, _ := json.Marshal(tx)
+	return string(jsonBytes)
+}
+
+type Topic struct {
+	Data interface{}
+}
+
+type Topics []Topic
+
+// Log ...
+type Log struct {
+	LogIndex         uint64     `json:"logIndex"`
+	BlockNumber      *big.Int   `json:"blockNumber"`
+	BlockHash        Hash       `json:"blockHash"`
+	TransactionHash  Hash       `json:"transactionHash"`
+	TransactionIndex uint64     `json:"transactionIndex"`
+	Address          Address    `json:"address"`
+	Data             [][32]byte `json:"data"`
+	Topics           Topics     `json:"topics"`
+}
+
 // TransactionReceipt ...
 type TransactionReceipt struct {
 	Hash              Hash     `json:"transactionHash"`
@@ -94,16 +125,9 @@ type TransactionReceipt struct {
 	Logs              []Log    `json:"logs"`
 }
 
-// Log ...
-type Log struct {
-	LogIndex         uint64     `json:"logIndex"`
-	BlockNumber      *big.Int   `json:"blockNumber"`
-	BlockHash        Hash       `json:"blockHash"`
-	TransactionHash  Hash       `json:"transactionHash"`
-	TransactionIndex uint64     `json:"transactionIndex"`
-	Address          Address    `json:"address"`
-	Data             [][32]byte `json:"data"`
-	Topics           [][32]byte `json:"topics"`
+func (tx *TransactionReceipt) String() string {
+	jsonBytes, _ := json.Marshal(tx)
+	return string(jsonBytes)
 }
 
 // Block ...

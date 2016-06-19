@@ -27,12 +27,20 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package filter
 
-// FilterOption ...
-type FilterOption struct {
+// PendingTransactionFilter ...
+type PendingTransactionFilter struct {
+	BaseFilter
 }
 
-// Filter ...
-type Filter struct {
+// NewPendingTransactionFilter creates a PendingTransactionFilter with
+// corresponding filter id
+func NewPendingTransactionFilter(id uint64) *PendingTransactionFilter {
+	return &PendingTransactionFilter{
+		BaseFilter{
+			option:   &Option{},
+			filterID: id,
+		},
+	}
 }
