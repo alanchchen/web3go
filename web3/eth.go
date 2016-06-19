@@ -714,7 +714,7 @@ func (eth *EthAPI) GetWork() (header common.Hash, seed common.Hash, boundary com
 
 // SubmitWork is used for submitting a proof-of-work solution.
 func (eth *EthAPI) SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) bool {
-	req := eth.requestManager.newRequest("eth_getWork")
+	req := eth.requestManager.newRequest("eth_submitWork")
 	req.Set("params", []string{
 		fmt.Sprintf("%16x", nonce),
 		header.String(),
