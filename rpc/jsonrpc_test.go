@@ -28,3 +28,87 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 package rpc
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
+)
+
+type JSONRPCTestSuite struct {
+	suite.Suite
+	rpc RPC
+}
+
+func (suite *JSONRPCTestSuite) Test_Name() {
+	rpc := suite.rpc
+	assert.EqualValues(suite.T(), "jsonrpc", rpc.Name(), "Should be equal")
+}
+
+func (suite *JSONRPCTestSuite) Test_NewRequest() {
+	rpc := suite.rpc
+	req := rpc.NewRequest("test", "arg1", "arg2")
+
+	if assert.NotNil(suite.T(), req) {
+		assert.EqualValues(suite.T(), "2.0", req.Get("version").(string), "Should be equal")
+		assert.EqualValues(suite.T(), []string{"arg1", "arg2"}, req.Get("params").([]string), "Should be equal")
+		assert.EqualValues(suite.T(), "test", req.Get("method").(string), "Should be equal")
+		assert.NotZero(suite.T(), req.ID(), "Should not be zero")
+		assert.EqualValues(suite.T(), `{"version":"2.0","method":"test","params":["arg1","arg2"],"id":1}`, req.String(), "Should be equal")
+
+		req.Set("version", "3.0")
+		assert.EqualValues(suite.T(), "2.0", req.Get("version").(string), "Should be equal")
+		req.Set("method", "new_method")
+		assert.EqualValues(suite.T(), "new_method", req.Get("method").(string), "Should be equal")
+		req.Set("params", "test_params")
+		assert.EqualValues(suite.T(), []string{"test_params"}, req.Get("params").([]string), "Should be equal")
+		req.Set("params", []string{"test_param1", "test_param2"})
+		assert.EqualValues(suite.T(), []string{"test_param1", "test_param2"}, req.Get("params").([]string), "Should be equal")
+	}
+}
+
+func (suite *JSONRPCTestSuite) Test_NewResponse() {
+	rpc := suite.rpc
+	resp := rpc.NewResponse(`{"version": "2.0", "id": 1, "result": ["result1", "result2"]}`)
+	if assert.NotNil(suite.T(), resp) {
+		assert.EqualValues(suite.T(), "2.0", resp.Get("version").(string), "Should be equal")
+		assert.EqualValues(suite.T(), 1, resp.ID(), "Should be equal")
+
+		var results []string
+		for _, r := range resp.Get("result").([]interface{}) {
+			results = append(results, r.(string))
+		}
+		assert.EqualValues(suite.T(), []string{"result1", "result2"}, results, "Should be equal")
+		assert.EqualValues(suite.T(), `{"version":"2.0","id":1,"result":["result1","result2"]}`, resp.String(), "Should be equal")
+	}
+
+	resp = rpc.NewResponse([]byte(`{"version": "2.0", "id": 1, "result": ["result1", "result2"]}`))
+	if assert.NotNil(suite.T(), resp) {
+		assert.EqualValues(suite.T(), "2.0", resp.Get("version").(string), "Should be equal")
+		assert.EqualValues(suite.T(), 1, resp.ID(), "Should be equal")
+
+		var results []string
+		for _, r := range resp.Get("result").([]interface{}) {
+			results = append(results, r.(string))
+		}
+		assert.EqualValues(suite.T(), []string{"result1", "result2"}, results, "Should be equal")
+		assert.Nil(suite.T(), resp.Get("xxx"))
+		assert.EqualValues(suite.T(), `{"version":"2.0","id":1,"result":["result1","result2"]}`, resp.String(), "Should be equal")
+	}
+
+	resp = rpc.NewResponse("xxx")
+	assert.Nil(suite.T(), resp)
+}
+
+func (suite *JSONRPCTestSuite) SetupTest() {
+	suite.rpc = NewJSONRPC()
+}
+
+func (suite *JSONRPCTestSuite) TearDownTest() {
+
+}
+
+func Test_JSONRPCTestSuite(t *testing.T) {
+	suite.Run(t, new(JSONRPCTestSuite))
+}

@@ -30,8 +30,6 @@
 package rpc
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -60,7 +58,7 @@ func (req *JSONRPCRequest) Set(key string, value interface{}) {
 	case "method":
 		req.Method = fmt.Sprintf("%v", value)
 	case "params":
-		req.Params = req.Params[:]
+		req.Params = req.Params[:0]
 		switch reflect.TypeOf(value).Kind() {
 		case reflect.Slice, reflect.Array:
 			v := reflect.ValueOf(value)
@@ -92,10 +90,7 @@ func (req *JSONRPCRequest) Get(key string) interface{} {
 
 // String ...
 func (req *JSONRPCRequest) String() string {
-	jsonBytes, err := json.Marshal(req)
-	if err != nil {
-		return ""
-	}
+	jsonBytes, _ := json.Marshal(req)
 	return string(jsonBytes)
 }
 
@@ -130,10 +125,7 @@ func (resp *JSONRPCResponse) Get(key string) interface{} {
 
 // String ...
 func (resp *JSONRPCResponse) String() string {
-	jsonBytes, err := json.Marshal(resp)
-	if err != nil {
-		return ""
-	}
+	jsonBytes, _ := json.Marshal(resp)
 	return string(jsonBytes)
 }
 
@@ -172,6 +164,11 @@ func (rpc *JSONRPC) NewRequest(method string, args ...interface{}) Request {
 func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 	response := &JSONRPCResponse{}
 	switch data.(type) {
+	case string:
+		d := []byte(data.(string))
+		if err := json.Unmarshal(d, response); err == nil {
+			return response
+		}
 	case []byte:
 		d := data.([]byte)
 		if err := json.Unmarshal(d, response); err == nil {
@@ -182,12 +179,6 @@ func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 			if err := json.Unmarshal(b, response); err == nil {
 				return response
 			}
-		} else {
-			if b, err := toBytes(data); err == nil {
-				if err := json.Unmarshal(b, response); err == nil {
-					return response
-				}
-			}
 		}
 	}
 	return nil
@@ -195,14 +186,4 @@ func (rpc *JSONRPC) NewResponse(data interface{}) Response {
 
 func (rpc *JSONRPC) newID() uint64 {
 	return atomic.AddUint64(&rpc.messageID, 1)
-}
-
-func toBytes(data interface{}) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(data)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
