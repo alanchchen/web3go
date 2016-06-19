@@ -92,7 +92,7 @@ func (suite *HTTPProviderTestSuite) SetupTest() {
 		jsonBlob, _ := json.Marshal(resp)
 		w.Write(jsonBlob)
 	}))
-	suite.provider = NewHTTPProvider(suite.server.URL)
+	suite.provider = NewHTTPProvider(suite.server.URL, rpc.GetDefaultMethod())
 }
 
 func (suite *HTTPProviderTestSuite) TearDownTest() {

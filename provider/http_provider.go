@@ -45,11 +45,14 @@ type HTTPProvider struct {
 }
 
 // NewHTTPProvider creates a HTTP provider
-func NewHTTPProvider(host string) Provider {
+func NewHTTPProvider(host string, method rpc.RPC) Provider {
 	if !strings.HasPrefix(host, "http://") {
 		host = "http://" + host
 	}
-	return &HTTPProvider{host: host, rpc: rpc.GetRPCMethod()}
+	if method == nil {
+		method = rpc.GetDefaultMethod()
+	}
+	return &HTTPProvider{host: host, rpc: method}
 }
 
 // IsConnected ...

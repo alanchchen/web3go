@@ -52,10 +52,10 @@ type MockHTTPProvider struct {
 
 // NewMockHTTPProvider creates a HTTP provider mock
 func NewMockHTTPProvider() provider.Provider {
-	rpc := rpc.GetRPCMethod()
-	return &MockHTTPProvider{rpc: rpc,
+	method := rpc.GetDefaultMethod()
+	return &MockHTTPProvider{rpc: method,
 		apis: map[string]MockAPI{
-			"net": NewMockNetAPI(rpc),
+			"net": NewMockNetAPI(method),
 		}}
 }
 

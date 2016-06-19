@@ -51,7 +51,7 @@ type RPC interface {
 	NewResponse(data interface{}) Response
 }
 
-// GetRPCMethod ...
-func GetRPCMethod() RPC {
+// GetDefaultMethod ...
+func GetDefaultMethod() RPC {
 	return NewJSONRPC()
 }

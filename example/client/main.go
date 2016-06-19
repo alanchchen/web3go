@@ -34,6 +34,7 @@ import (
 	"fmt"
 
 	"github.com/alanchchen/web3go/provider"
+	"github.com/alanchchen/web3go/rpc"
 	"github.com/alanchchen/web3go/web3"
 )
 
@@ -48,7 +49,7 @@ func main() {
 		fmt.Printf("Connect to %s:%s\n", *hostname, *port)
 	}
 
-	provider := provider.NewHTTPProvider(*hostname + ":" + *port)
+	provider := provider.NewHTTPProvider(*hostname+":"+*port, rpc.GetDefaultMethod())
 	web3 := web3.NewWeb3(provider)
 
 	accounts := web3.Eth.Accounts()
