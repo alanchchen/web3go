@@ -90,11 +90,11 @@ type Eth interface {
 // EthAPI ...
 type EthAPI struct {
 	rpc            rpc.RPC
-	requestManager *RequestManager
+	requestManager *requestManager
 }
 
 // NewEthAPI ...
-func newEthAPI(requestManager *RequestManager) Eth {
+func newEthAPI(requestManager *requestManager) Eth {
 	return &EthAPI{requestManager: requestManager}
 }
 

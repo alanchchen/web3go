@@ -40,11 +40,11 @@ type Net interface {
 
 // NetAPI ...
 type NetAPI struct {
-	requestManager *RequestManager
+	requestManager *requestManager
 }
 
 // NewNetAPI ...
-func newNetAPI(requestManager *RequestManager) Net {
+func newNetAPI(requestManager *requestManager) Net {
 	return &NetAPI{requestManager: requestManager}
 }
 
