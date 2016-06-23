@@ -30,58 +30,41 @@
 package web3
 
 import (
-	"strconv"
+	"testing"
 
-	"github.com/alanchchen/web3go/common"
+	"github.com/alanchchen/web3go/test"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-// Net ...
-type Net interface {
-	Version() string
-	PeerCount() uint64
-	Listening() bool
+type EthTestSuite struct {
+	suite.Suite
+	web3 *Web3
+	eth  Eth
 }
 
-// NetAPI ...
-type NetAPI struct {
-	requestManager *requestManager
+func (suite *EthTestSuite) Test_ProcotolVersion() {
+	eth := suite.eth
+	assert.NotEqual(suite.T(), "", eth.ProtocolVersion(), "version is empty")
 }
 
-// NewNetAPI ...
-func newNetAPI(requestManager *requestManager) Net {
-	return &NetAPI{requestManager: requestManager}
+func (suite *EthTestSuite) Test_Syncing() {
+	eth := suite.eth
+	ok, _ := eth.Syncing()
+	assert.Exactly(suite.T(), false, ok, "should be false")
 }
 
-// Version returns the current network protocol version.
-func (net *NetAPI) Version() string {
-	req := net.requestManager.newRequest("net_version")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Get("result").(string)
+func (suite *EthTestSuite) Test_Coinbase() {
+	eth := suite.eth
+	address := eth.Coinbase()
+	assert.EqualValues(suite.T(), "0x407d73d8a49eeb85d32cf465507dd71d507100c1", address.String(), "should be equal")
 }
 
-// PeerCount returns number of peers currenly connected to the client.
-func (net *NetAPI) PeerCount() uint64 {
-	req := net.requestManager.newRequest("net_peerCount")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
-	if err != nil {
-		panic(err)
-	}
-	return result
+func (suite *EthTestSuite) SetupTest() {
+	suite.web3 = NewWeb3(test.NewMockHTTPProvider())
+	suite.eth = suite.web3.Eth
 }
 
-// Listening returns true if client is actively listening for network connections.
-func (net *NetAPI) Listening() bool {
-	req := net.requestManager.newRequest("net_listening")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Get("result").(bool)
+func Test_EthTestSuite(t *testing.T) {
+	suite.Run(t, new(EthTestSuite))
 }

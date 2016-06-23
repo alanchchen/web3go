@@ -36,21 +36,21 @@ import (
 
 const (
 	hashLength    = 32
-	addressLength = 40
+	addressLength = 20
 )
 
 // Hash ...
 type Hash [hashLength]byte
 
-func (hash *Hash) String() (result string) {
-	return "0x" + string(hash[:])
+func (hash *Hash) String() string {
+	return BytesToHex(hash[:])
 }
 
 // Address ...
 type Address [addressLength]byte
 
-func (addr *Address) String() (result string) {
-	return "0x" + string(addr[:])
+func (addr *Address) String() string {
+	return BytesToHex(addr[:])
 }
 
 // SyncStatus ...

@@ -39,6 +39,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/alanchchen/web3go/common"
 	"github.com/alanchchen/web3go/provider"
 	"github.com/tonnerre/golang-go.crypto/sha3"
 )
@@ -130,26 +131,26 @@ checkEncoding:
 	switch options.(type) {
 	case string:
 		if err := json.Unmarshal([]byte(options.(string)), &opt); err != nil {
-			return BytesToHex(web3.sha3Hash([]byte(data)))
+			return common.BytesToHex(web3.sha3Hash([]byte(data)))
 		}
 		break checkEncoding
 	default:
 		var err error
 		var optBytes []byte
 		if optBytes, err = json.Marshal(options); err != nil {
-			return BytesToHex(web3.sha3Hash([]byte(data)))
+			return common.BytesToHex(web3.sha3Hash([]byte(data)))
 		}
 
 		if err = json.Unmarshal(optBytes, &opt); err != nil {
-			return BytesToHex(web3.sha3Hash([]byte(data)))
+			return common.BytesToHex(web3.sha3Hash([]byte(data)))
 		}
 		break checkEncoding
 	}
 
 	if opt.Encoding == "hex" {
-		return BytesToHex(web3.sha3Hash(HexToBytes(data)))
+		return common.BytesToHex(web3.sha3Hash(common.HexToBytes(data)))
 	}
-	return BytesToHex(web3.sha3Hash([]byte(data)))
+	return common.BytesToHex(web3.sha3Hash([]byte(data)))
 }
 
 // ToHex converts any value into HEX.
@@ -168,9 +169,9 @@ func (web3 *Web3) ToHex(value interface{}) string {
 		}
 		unquoted, err := strconv.Unquote(string(jsonBytes))
 		if err != nil {
-			BytesToHex(jsonBytes)
+			return common.BytesToHex(jsonBytes)
 		}
-		return BytesToHex([]byte(unquoted))
+		return common.BytesToHex([]byte(unquoted))
 	case *big.Int:
 		return web3.FromDecimal(value)
 	default:
@@ -178,13 +179,13 @@ func (web3 *Web3) ToHex(value interface{}) string {
 		if err != nil {
 			return web3.FromDecimal(value)
 		}
-		return BytesToHex(jsonBytes)
+		return common.BytesToHex(jsonBytes)
 	}
 }
 
 // ToASCII converts a HEX string into a ASCII string.
 func (web3 *Web3) ToASCII(hexString string) string {
-	return string(bytes.Trim(HexToBytes(hexString), "\x00"))
+	return string(bytes.Trim(common.HexToBytes(hexString), "\x00"))
 }
 
 // FromASCII converts any ASCII string to a HEX string.

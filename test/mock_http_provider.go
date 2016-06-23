@@ -56,6 +56,7 @@ func NewMockHTTPProvider() provider.Provider {
 	return &MockHTTPProvider{rpc: method,
 		apis: map[string]MockAPI{
 			"net": NewMockNetAPI(method),
+			"eth": NewMockEthAPI(method),
 		}}
 }
 

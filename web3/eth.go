@@ -134,12 +134,12 @@ func (eth *EthAPI) Syncing() (bool, *common.SyncStatus) {
 
 // Coinbase returns the client coinbase address.
 func (eth *EthAPI) Coinbase() (addr common.Address) {
-	req := eth.requestManager.newRequest("eth_protocolVersion")
+	req := eth.requestManager.newRequest("eth_coinbase")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		panic(err)
 	}
-	return StringToAddress(resp.Get("result").(string))
+	return common.StringToAddress(resp.Get("result").(string))
 }
 
 // Mining returns true if client is actively mining new blocks.
@@ -175,7 +175,7 @@ func (eth *EthAPI) GasPrice() (result *big.Int) {
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -191,7 +191,7 @@ func (eth *EthAPI) Accounts() (addrs []common.Address) {
 	}
 	results := resp.Get("result").([]interface{})
 	for _, r := range results {
-		addrs = append(addrs, StringToAddress(r.(string)))
+		addrs = append(addrs, common.StringToAddress(r.(string)))
 	}
 	return addrs
 }
@@ -204,7 +204,7 @@ func (eth *EthAPI) BlockNumber() (result *big.Int) {
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -220,7 +220,7 @@ func (eth *EthAPI) GetBalance(address common.Address, quantity string) (result *
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -251,7 +251,7 @@ func (eth *EthAPI) GetTransactionCount(address common.Address, quantity string) 
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -268,7 +268,7 @@ func (eth *EthAPI) GetBlockTransactionCountByHash(hash common.Hash) (result *big
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -285,7 +285,7 @@ func (eth *EthAPI) GetBlockTransactionCountByNumber(quantity string) (result *bi
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -302,7 +302,7 @@ func (eth *EthAPI) GetUncleCountByBlockHash(hash common.Hash) (result *big.Int) 
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -319,7 +319,7 @@ func (eth *EthAPI) GetUncleCountByBlockNumber(quantity string) (result *big.Int)
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -334,7 +334,7 @@ func (eth *EthAPI) GetCode(address common.Address, quantity string) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return HexToBytes(resp.Get("result").(string))
+	return common.HexToBytes(resp.Get("result").(string))
 }
 
 // Sign signs data with a given address.
@@ -345,7 +345,7 @@ func (eth *EthAPI) Sign(address common.Address, data []byte) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return HexToBytes(resp.Get("result").(string))
+	return common.HexToBytes(resp.Get("result").(string))
 }
 
 // SendTransaction creates new message call transaction or a contract creation,
@@ -357,19 +357,19 @@ func (eth *EthAPI) SendTransaction(tx *common.TransactionRequest) (hash common.H
 	if err != nil {
 		panic(err)
 	}
-	return StringToHash(resp.Get("result").(string))
+	return common.StringToHash(resp.Get("result").(string))
 }
 
 // SendRawTransaction creates new message call transaction or a contract
 // creation for signed transactions.
 func (eth *EthAPI) SendRawTransaction(tx []byte) (hash common.Hash) {
 	req := eth.requestManager.newRequest("eth_sendRawTransaction")
-	req.Set("params", []string{BytesToHex(tx)})
+	req.Set("params", []string{common.BytesToHex(tx)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		panic(err)
 	}
-	return StringToHash(resp.Get("result").(string))
+	return common.StringToHash(resp.Get("result").(string))
 }
 
 // Call executes a new message call immediately without creating a transaction
@@ -381,7 +381,7 @@ func (eth *EthAPI) Call(tx *common.TransactionRequest, quantity string) []byte {
 	if err != nil {
 		panic(err)
 	}
-	return HexToBytes(resp.Get("result").(string))
+	return common.HexToBytes(resp.Get("result").(string))
 }
 
 // EstimateGas makes a call or transaction, which won't be added to the
@@ -395,7 +395,7 @@ func (eth *EthAPI) EstimateGas(tx *common.Transaction, quantity string) (result 
 		panic(err)
 	}
 	result = new(big.Int)
-	_, ok := result.SetString(HexToString(resp.Get("result").(string)), 16)
+	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
 		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
 	}
@@ -584,7 +584,7 @@ func (eth *EthAPI) NewFilter(option *filter.Option) filter.Filter {
 		panic(err)
 	}
 
-	id, err := strconv.ParseUint(HexToString(resp.Get("result").(string)), 16, 64)
+	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -600,7 +600,7 @@ func (eth *EthAPI) NewBlockFilter() *filter.BlockFilter {
 		panic(err)
 	}
 
-	id, err := strconv.ParseUint(HexToString(resp.Get("result").(string)), 16, 64)
+	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -617,7 +617,7 @@ func (eth *EthAPI) NewPendingTransactionFilter() *filter.PendingTransactionFilte
 		panic(err)
 	}
 
-	id, err := strconv.ParseUint(HexToString(resp.Get("result").(string)), 16, 64)
+	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -706,9 +706,9 @@ func (eth *EthAPI) GetWork() (header common.Hash, seed common.Hash, boundary com
 	}
 
 	results := resp.Get("result").([]string)
-	header = StringToHash(results[0])
-	seed = StringToHash(results[1])
-	boundary = StringToHash(results[2])
+	header = common.StringToHash(results[0])
+	seed = common.StringToHash(results[1])
+	boundary = common.StringToHash(results[2])
 	return header, seed, boundary
 }
 

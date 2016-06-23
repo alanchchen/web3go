@@ -27,61 +27,71 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package test
 
 import (
-	"strconv"
+	"fmt"
 
-	"github.com/alanchchen/web3go/common"
+	"github.com/alanchchen/web3go/rpc"
 )
 
-// Net ...
-type Net interface {
-	Version() string
-	PeerCount() uint64
-	Listening() bool
+// MockEthAPI ...
+type MockEthAPI struct {
+	rpc rpc.RPC
 }
 
-// NetAPI ...
-type NetAPI struct {
-	requestManager *requestManager
+// NewMockEthAPI ...
+func NewMockEthAPI(rpc rpc.RPC) MockAPI {
+	return &MockEthAPI{rpc: rpc}
 }
 
-// NewNetAPI ...
-func newNetAPI(requestManager *requestManager) Net {
-	return &NetAPI{requestManager: requestManager}
-}
-
-// Version returns the current network protocol version.
-func (net *NetAPI) Version() string {
-	req := net.requestManager.newRequest("net_version")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
+// Do ...
+func (eth *MockEthAPI) Do(request rpc.Request) (response rpc.Response, err error) {
+	method := request.Get("method").(string)
+	switch method {
+	case "eth_protocolVersion":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			"54",
+		}
+		if resp := eth.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
+	case "eth_syncing":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			false,
+		}
+		if resp := eth.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
+	case "eth_coinbase":
+		data := struct {
+			Version string      `json:"version"`
+			ID      uint64      `json:"id"`
+			Result  interface{} `json:"result"`
+		}{
+			request.Get("version").(string),
+			request.ID(),
+			"0x407d73d8a49eeb85d32cf465507dd71d507100c1",
+		}
+		if resp := eth.rpc.NewResponse(data); resp != nil {
+			return resp, nil
+		}
+		return nil, fmt.Errorf("Failed to generate response")
 	}
-	return resp.Get("result").(string)
-}
 
-// PeerCount returns number of peers currenly connected to the client.
-func (net *NetAPI) PeerCount() uint64 {
-	req := net.requestManager.newRequest("net_peerCount")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
-	if err != nil {
-		panic(err)
-	}
-	return result
-}
-
-// Listening returns true if client is actively listening for network connections.
-func (net *NetAPI) Listening() bool {
-	req := net.requestManager.newRequest("net_listening")
-	resp, err := net.requestManager.send(req)
-	if err != nil {
-		panic(err)
-	}
-	return resp.Get("result").(bool)
+	return nil, fmt.Errorf("Invalid method %s", method)
 }

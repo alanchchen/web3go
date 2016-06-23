@@ -27,7 +27,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package web3
+package common
 
 import (
 	"bytes"
@@ -35,8 +35,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/alanchchen/web3go/common"
 )
 
 func IsHex(hex string) bool {
@@ -77,15 +75,15 @@ func HexToBytes(hex string) []byte {
 	return slice
 }
 
-func StringToAddress(s string) (addr common.Address) {
-	s = HexToString(s)
-	copy(addr[:], s)
+func StringToAddress(s string) (addr Address) {
+	b := HexToBytes(s)
+	copy(addr[:], b)
 	return addr
 }
 
-func StringToHash(s string) (hash common.Hash) {
-	s = HexToString(s)
-	copy(hash[:], s)
+func StringToHash(s string) (hash Hash) {
+	b := HexToBytes(s)
+	copy(hash[:], b)
 	return hash
 }
 
