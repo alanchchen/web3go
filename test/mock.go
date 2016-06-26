@@ -35,27 +35,18 @@ import (
 	"github.com/alanchchen/web3go/rpc"
 )
 
-// MockNetAPI ...
-type MockNetAPI struct {
-	rpc rpc.RPC
-}
-
-// NewMockNetAPI ...
-func NewMockNetAPI(rpc rpc.RPC) MockAPI {
-	return &MockNetAPI{rpc: rpc}
-}
-
-// Do ...
-func (net *MockNetAPI) Do(request rpc.Request) (response rpc.Response, err error) {
-	method := request.Get("method").(string)
-	switch method {
-	case "net_version":
-		return generateResponse(net.rpc, request, "100")
-	case "net_listening":
-		return generateResponse(net.rpc, request, true)
-	case "net_peerCount":
-		return generateResponse(net.rpc, request, "0x32")
+func generateResponse(rpc rpc.RPC, request rpc.Request, result interface{}) (response rpc.Response, err error) {
+	data := struct {
+		Version string      `json:"version"`
+		ID      uint64      `json:"id"`
+		Result  interface{} `json:"result"`
+	}{
+		request.Get("version").(string),
+		request.ID(),
+		result,
 	}
-
-	return nil, fmt.Errorf("Invalid method %s", method)
+	if resp := rpc.NewResponse(data); resp != nil {
+		return resp, nil
+	}
+	return nil, fmt.Errorf("Failed to generate response")
 }

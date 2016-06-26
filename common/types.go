@@ -42,12 +42,22 @@ const (
 // Hash ...
 type Hash [hashLength]byte
 
+func NewHash(data []byte) (result Hash) {
+	copy(result[:], data)
+	return result
+}
+
 func (hash *Hash) String() string {
 	return BytesToHex(hash[:])
 }
 
 // Address ...
 type Address [addressLength]byte
+
+func NewAddress(data []byte) (result Address) {
+	copy(result[:], data)
+	return result
+}
 
 func (addr *Address) String() string {
 	return BytesToHex(addr[:])
@@ -103,14 +113,14 @@ type Topics []Topic
 
 // Log ...
 type Log struct {
-	LogIndex         uint64     `json:"logIndex"`
-	BlockNumber      *big.Int   `json:"blockNumber"`
-	BlockHash        Hash       `json:"blockHash"`
-	TransactionHash  Hash       `json:"transactionHash"`
-	TransactionIndex uint64     `json:"transactionIndex"`
-	Address          Address    `json:"address"`
-	Data             [][32]byte `json:"data"`
-	Topics           Topics     `json:"topics"`
+	LogIndex         uint64   `json:"logIndex"`
+	BlockNumber      *big.Int `json:"blockNumber"`
+	BlockHash        Hash     `json:"blockHash"`
+	TransactionHash  Hash     `json:"transactionHash"`
+	TransactionIndex uint64   `json:"transactionIndex"`
+	Address          Address  `json:"address"`
+	Data             []byte   `json:"data"`
+	Topics           Topics   `json:"topics"`
 }
 
 // TransactionReceipt ...
@@ -146,9 +156,9 @@ type Block struct {
 	ExtraData       Hash     `json:"extraData"`
 	Size            *big.Int `json:"size"`
 	GasLimit        *big.Int `json:"gasLimit"`
-	MinGasPrice     *big.Int `json:"minGasPrice"`
 	GasUsed         *big.Int `json:"gasUsed"`
 	Timestamp       *big.Int `json:"timestamp"`
 	Transactions    []Hash   `json:"transactions"`
 	Uncles          []Hash   `json:"uncles"`
+	//MinGasPrice     *big.Int `json:"minGasPrice"`
 }

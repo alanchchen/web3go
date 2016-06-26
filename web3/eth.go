@@ -62,7 +62,7 @@ type Eth interface {
 	SendTransaction(tx *common.TransactionRequest) common.Hash
 	SendRawTransaction(tx []byte) common.Hash
 	Call(tx *common.TransactionRequest, quantity string) []byte
-	EstimateGas(tx *common.Transaction, quantity string) *big.Int
+	EstimateGas(tx *common.TransactionRequest, quantity string) *big.Int
 	GetBlockByHash(hash common.Hash, full bool) *common.Block
 	GetBlockByNumber(quantity string, full bool) *common.Block
 	GetTransactionByHash(hash common.Hash) *common.Transaction
@@ -160,7 +160,7 @@ func (eth *EthAPI) HashRate() uint64 {
 	if err != nil {
 		panic(err)
 	}
-	result, err := strconv.ParseUint(resp.Get("result").(string), 16, 64)
+	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -213,7 +213,7 @@ func (eth *EthAPI) BlockNumber() (result *big.Int) {
 
 // GetBalance returns the balance of the account of given address.
 func (eth *EthAPI) GetBalance(address common.Address, quantity string) (result *big.Int) {
-	req := eth.requestManager.newRequest("eth_blockNumber")
+	req := eth.requestManager.newRequest("eth_getBalance")
 	req.Set("params", []string{address.String(), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
@@ -235,7 +235,7 @@ func (eth *EthAPI) GetStorageAt(address common.Address, position uint64, quantit
 	if err != nil {
 		panic(err)
 	}
-	result, err := strconv.ParseUint(resp.Get("result").(string), 16, 64)
+	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		panic(err)
 	}
@@ -387,7 +387,7 @@ func (eth *EthAPI) Call(tx *common.TransactionRequest, quantity string) []byte {
 // EstimateGas makes a call or transaction, which won't be added to the
 // blockchain and returns the used gas, which can be used for estimating the
 // used gas.
-func (eth *EthAPI) EstimateGas(tx *common.Transaction, quantity string) (result *big.Int) {
+func (eth *EthAPI) EstimateGas(tx *common.TransactionRequest, quantity string) (result *big.Int) {
 	req := eth.requestManager.newRequest("eth_estimateGas")
 	req.Set("params", []string{tx.String(), quantity})
 	resp, err := eth.requestManager.send(req)
@@ -411,10 +411,10 @@ func (eth *EthAPI) GetBlockByHash(hash common.Hash, full bool) *common.Block {
 		panic(err)
 	}
 
-	result := &common.Block{}
+	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result.ToBlock()
 		}
 	}
 
@@ -430,10 +430,10 @@ func (eth *EthAPI) GetBlockByNumber(quantity string, full bool) *common.Block {
 		panic(err)
 	}
 
-	result := &common.Block{}
+	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result.ToBlock()
 		}
 	}
 
