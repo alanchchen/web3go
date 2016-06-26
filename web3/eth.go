@@ -42,48 +42,48 @@ import (
 
 // Eth ...
 type Eth interface {
-	ProtocolVersion() string
-	Syncing() (bool, *common.SyncStatus)
-	Coinbase() common.Address
-	Mining() bool
-	HashRate() uint64
-	GasPrice() *big.Int
-	Accounts() []common.Address
-	BlockNumber() *big.Int
-	GetBalance(address common.Address, quantity string) *big.Int
-	GetStorageAt(address common.Address, position uint64, quantity string) uint64
-	GetTransactionCount(address common.Address, quantity string) *big.Int
-	GetBlockTransactionCountByHash(hash common.Hash) *big.Int
-	GetBlockTransactionCountByNumber(quantity string) *big.Int
-	GetUncleCountByBlockHash(hash common.Hash) *big.Int
-	GetUncleCountByBlockNumber(quantity string) *big.Int
-	GetCode(address common.Address, quantity string) []byte
-	Sign(address common.Address, data []byte) []byte
-	SendTransaction(tx *common.TransactionRequest) common.Hash
-	SendRawTransaction(tx []byte) common.Hash
-	Call(tx *common.TransactionRequest, quantity string) []byte
-	EstimateGas(tx *common.TransactionRequest, quantity string) *big.Int
-	GetBlockByHash(hash common.Hash, full bool) *common.Block
-	GetBlockByNumber(quantity string, full bool) *common.Block
-	GetTransactionByHash(hash common.Hash) *common.Transaction
-	GetTransactionByBlockHashAndIndex(hash common.Hash, index uint64) *common.Transaction
-	GetTransactionByBlockNumberAndIndex(quantity string, index uint64) *common.Transaction
-	GetTransactionReceipt(hash common.Hash) *common.TransactionReceipt
-	GetUncleByBlockHashAndIndex(hash common.Hash, index uint64) *common.Block
-	GetUncleByBlockNumberAndIndex(quantity string, index uint64) *common.Block
-	GetCompilers() []string
+	ProtocolVersion() (string, error)
+	Syncing() (common.SyncStatus, error)
+	Coinbase() (common.Address, error)
+	Mining() (bool, error)
+	HashRate() (uint64, error)
+	GasPrice() (*big.Int, error)
+	Accounts() ([]common.Address, error)
+	BlockNumber() (*big.Int, error)
+	GetBalance(address common.Address, quantity string) (*big.Int, error)
+	GetStorageAt(address common.Address, position uint64, quantity string) (uint64, error)
+	GetTransactionCount(address common.Address, quantity string) (*big.Int, error)
+	GetBlockTransactionCountByHash(hash common.Hash) (*big.Int, error)
+	GetBlockTransactionCountByNumber(quantity string) (*big.Int, error)
+	GetUncleCountByBlockHash(hash common.Hash) (*big.Int, error)
+	GetUncleCountByBlockNumber(quantity string) (*big.Int, error)
+	GetCode(address common.Address, quantity string) ([]byte, error)
+	Sign(address common.Address, data []byte) ([]byte, error)
+	SendTransaction(tx *common.TransactionRequest) (common.Hash, error)
+	SendRawTransaction(tx []byte) (common.Hash, error)
+	Call(tx *common.TransactionRequest, quantity string) ([]byte, error)
+	EstimateGas(tx *common.TransactionRequest, quantity string) (*big.Int, error)
+	GetBlockByHash(hash common.Hash, full bool) (*common.Block, error)
+	GetBlockByNumber(quantity string, full bool) (*common.Block, error)
+	GetTransactionByHash(hash common.Hash) (*common.Transaction, error)
+	GetTransactionByBlockHashAndIndex(hash common.Hash, index uint64) (*common.Transaction, error)
+	GetTransactionByBlockNumberAndIndex(quantity string, index uint64) (*common.Transaction, error)
+	GetTransactionReceipt(hash common.Hash) (*common.TransactionReceipt, error)
+	GetUncleByBlockHashAndIndex(hash common.Hash, index uint64) (*common.Block, error)
+	GetUncleByBlockNumberAndIndex(quantity string, index uint64) (*common.Block, error)
+	GetCompilers() ([]string, error)
 	// GompileLLL
 	// CompileSolidity
 	// CompileSerpent
-	NewFilter(option *filter.Option) filter.Filter
-	NewBlockFilter() *filter.BlockFilter
-	NewPendingTransactionFilter() *filter.PendingTransactionFilter
-	UninstallFilter(filter filter.Filter) bool
-	GetFilterChanges(filter filter.Filter) []common.Log
-	GetFilterLogs(filter filter.Filter) []common.Log
-	GetLogs(filter filter.Filter) []common.Log
-	GetWork() (header common.Hash, seed common.Hash, boundary common.Hash)
-	SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) bool
+	NewFilter(option *filter.Option) (filter.Filter, error)
+	NewBlockFilter() (*filter.BlockFilter, error)
+	NewPendingTransactionFilter() (*filter.PendingTransactionFilter, error)
+	UninstallFilter(filter filter.Filter) (bool, error)
+	GetFilterChanges(filter filter.Filter) ([]common.Log, error)
+	GetFilterLogs(filter filter.Filter) ([]common.Log, error)
+	GetLogs(filter filter.Filter) ([]common.Log, error)
+	GetWork() (common.Hash, common.Hash, common.Hash, error)
+	SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) (bool, error)
 	// SubmitHashrate
 }
 
@@ -99,621 +99,632 @@ func newEthAPI(requestManager *requestManager) Eth {
 }
 
 // ProtocolVersion returns the current ethereum protocol version.
-func (eth *EthAPI) ProtocolVersion() string {
+func (eth *EthAPI) ProtocolVersion() (string, error) {
 	req := eth.requestManager.newRequest("eth_protocolVersion")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
-	return resp.Get("result").(string)
+	return resp.Get("result").(string), nil
 }
 
 // Syncing returns true with an object with data about the sync status or false
 // with nil.
-func (eth *EthAPI) Syncing() (bool, *common.SyncStatus) {
+func (eth *EthAPI) Syncing() (common.SyncStatus, error) {
 	req := eth.requestManager.newRequest("eth_syncing")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return common.SyncStatus{
+			Result: false,
+		}, err
 	}
 
 	result := resp.Get("result")
 	switch result.(type) {
 	case bool:
-		return false, nil
+		return common.SyncStatus{
+			Result: false,
+		}, nil
 	default:
-		r := &common.SyncStatus{}
-		if resultBlob, err := json.Marshal(result); err == nil {
-			if err := json.Unmarshal(resultBlob, &r); err == nil {
-				return true, r
+		var err error
+		var resultBlob []byte
+		r := common.SyncStatus{
+			Result: true,
+		}
+		if resultBlob, err = json.Marshal(result); err == nil {
+			if err = json.Unmarshal(resultBlob, &r); err == nil {
+				return r, nil
 			}
 		}
+
+		return common.SyncStatus{
+			Result: false,
+		}, err
 	}
-	return false, nil
 }
 
 // Coinbase returns the client coinbase address.
-func (eth *EthAPI) Coinbase() (addr common.Address) {
+func (eth *EthAPI) Coinbase() (addr common.Address, err error) {
 	req := eth.requestManager.newRequest("eth_coinbase")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return common.NewAddress(nil), err
 	}
-	return common.StringToAddress(resp.Get("result").(string))
+	return common.StringToAddress(resp.Get("result").(string)), nil
 }
 
 // Mining returns true if client is actively mining new blocks.
-func (eth *EthAPI) Mining() bool {
+func (eth *EthAPI) Mining() (bool, error) {
 	req := eth.requestManager.newRequest("eth_mining")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
-	return resp.Get("result").(bool)
+	return resp.Get("result").(bool), nil
 }
 
 // HashRate returns the number of hashes per second that the node is mining
 // with.
-func (eth *EthAPI) HashRate() uint64 {
+func (eth *EthAPI) HashRate() (uint64, error) {
 	req := eth.requestManager.newRequest("eth_hashrate")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	return result
+	return result, nil
 }
 
 // GasPrice returns the current price per gas in wei.
-func (eth *EthAPI) GasPrice() (result *big.Int) {
+func (eth *EthAPI) GasPrice() (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_gasPrice")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // Accounts returns a list of addresses owned by client.
-func (eth *EthAPI) Accounts() (addrs []common.Address) {
+func (eth *EthAPI) Accounts() (addrs []common.Address, err error) {
 	req := eth.requestManager.newRequest("eth_accounts")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	results := resp.Get("result").([]interface{})
 	for _, r := range results {
 		addrs = append(addrs, common.StringToAddress(r.(string)))
 	}
-	return addrs
+	return addrs, nil
 }
 
 // BlockNumber returns the number of most recent block.
-func (eth *EthAPI) BlockNumber() (result *big.Int) {
+func (eth *EthAPI) BlockNumber() (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_blockNumber")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetBalance returns the balance of the account of given address.
-func (eth *EthAPI) GetBalance(address common.Address, quantity string) (result *big.Int) {
+func (eth *EthAPI) GetBalance(address common.Address, quantity string) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_getBalance")
 	req.Set("params", []string{address.String(), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetStorageAt returns the value from a storage position at a given address.
-func (eth *EthAPI) GetStorageAt(address common.Address, position uint64, quantity string) uint64 {
+func (eth *EthAPI) GetStorageAt(address common.Address, position uint64, quantity string) (uint64, error) {
 	req := eth.requestManager.newRequest("eth_getStorageAt")
 	req.Set("params", []string{address.String(), fmt.Sprintf("%v", position), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
 	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	return result
+	return result, nil
 }
 
 // GetTransactionCount returns the number of transactions sent from an address.
-func (eth *EthAPI) GetTransactionCount(address common.Address, quantity string) (result *big.Int) {
+func (eth *EthAPI) GetTransactionCount(address common.Address, quantity string) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_getTransactionCount")
 	req.Set("params", []string{address.String(), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetBlockTransactionCountByHash returns the number of transactions in a block
 // from a block matching the given block hash.
-func (eth *EthAPI) GetBlockTransactionCountByHash(hash common.Hash) (result *big.Int) {
+func (eth *EthAPI) GetBlockTransactionCountByHash(hash common.Hash) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_getBlockTransactionCountByHash")
 	req.Set("params", hash.String())
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetBlockTransactionCountByNumber returns the number of transactions in a
 // block from a block matching the given block number.
-func (eth *EthAPI) GetBlockTransactionCountByNumber(quantity string) (result *big.Int) {
+func (eth *EthAPI) GetBlockTransactionCountByNumber(quantity string) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_getBlockTransactionCountByNumber")
 	req.Set("params", quantity)
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetUncleCountByBlockHash returns the number of uncles in a block from a block
 // matching the given block hash.
-func (eth *EthAPI) GetUncleCountByBlockHash(hash common.Hash) (result *big.Int) {
+func (eth *EthAPI) GetUncleCountByBlockHash(hash common.Hash) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_getUncleCountByBlockHash")
 	req.Set("params", hash.String())
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetUncleCountByBlockNumber returns the number of uncles in a block from a
 // block matching the given block number.
-func (eth *EthAPI) GetUncleCountByBlockNumber(quantity string) (result *big.Int) {
+func (eth *EthAPI) GetUncleCountByBlockNumber(quantity string) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_getUncleCountByBlockNumber")
 	req.Set("params", quantity)
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetCode returns code at a given address.
-func (eth *EthAPI) GetCode(address common.Address, quantity string) []byte {
+func (eth *EthAPI) GetCode(address common.Address, quantity string) ([]byte, error) {
 	req := eth.requestManager.newRequest("eth_getCode")
 	req.Set("params", []string{address.String(), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return common.HexToBytes(resp.Get("result").(string))
+	return common.HexToBytes(resp.Get("result").(string)), nil
 }
 
 // Sign signs data with a given address.
-func (eth *EthAPI) Sign(address common.Address, data []byte) []byte {
+func (eth *EthAPI) Sign(address common.Address, data []byte) ([]byte, error) {
 	req := eth.requestManager.newRequest("eth_sign")
 	req.Set("params", []string{address.String(), string(data)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return common.HexToBytes(resp.Get("result").(string))
+	return common.HexToBytes(resp.Get("result").(string)), nil
 }
 
 // SendTransaction creates new message call transaction or a contract creation,
 // if the data field contains code.
-func (eth *EthAPI) SendTransaction(tx *common.TransactionRequest) (hash common.Hash) {
+func (eth *EthAPI) SendTransaction(tx *common.TransactionRequest) (hash common.Hash, err error) {
 	req := eth.requestManager.newRequest("eth_sendTransaction")
 	req.Set("params", []string{tx.String()})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return common.NewHash(nil), err
 	}
-	return common.StringToHash(resp.Get("result").(string))
+	return common.StringToHash(resp.Get("result").(string)), nil
 }
 
 // SendRawTransaction creates new message call transaction or a contract
 // creation for signed transactions.
-func (eth *EthAPI) SendRawTransaction(tx []byte) (hash common.Hash) {
+func (eth *EthAPI) SendRawTransaction(tx []byte) (hash common.Hash, err error) {
 	req := eth.requestManager.newRequest("eth_sendRawTransaction")
 	req.Set("params", []string{common.BytesToHex(tx)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return common.NewHash(nil), err
 	}
-	return common.StringToHash(resp.Get("result").(string))
+	return common.StringToHash(resp.Get("result").(string)), nil
 }
 
 // Call executes a new message call immediately without creating a transaction
 // on the block chain.
-func (eth *EthAPI) Call(tx *common.TransactionRequest, quantity string) []byte {
+func (eth *EthAPI) Call(tx *common.TransactionRequest, quantity string) ([]byte, error) {
 	req := eth.requestManager.newRequest("eth_call")
 	req.Set("params", []string{tx.String(), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return common.HexToBytes(resp.Get("result").(string))
+	return common.HexToBytes(resp.Get("result").(string)), nil
 }
 
 // EstimateGas makes a call or transaction, which won't be added to the
 // blockchain and returns the used gas, which can be used for estimating the
 // used gas.
-func (eth *EthAPI) EstimateGas(tx *common.TransactionRequest, quantity string) (result *big.Int) {
+func (eth *EthAPI) EstimateGas(tx *common.TransactionRequest, quantity string) (result *big.Int, err error) {
 	req := eth.requestManager.newRequest("eth_estimateGas")
 	req.Set("params", []string{tx.String(), quantity})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
-		panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+		return nil, fmt.Errorf("%v", resp.Get("result"))
 	}
-	return result
+	return result, nil
 }
 
 // GetBlockByHash returns information about a block by hash.
-func (eth *EthAPI) GetBlockByHash(hash common.Hash, full bool) *common.Block {
+func (eth *EthAPI) GetBlockByHash(hash common.Hash, full bool) (*common.Block, error) {
 	req := eth.requestManager.newRequest("eth_getBlockByHash")
 	req.Set("params", []interface{}{hash.String(), full})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result.ToBlock()
+			return result.ToBlock(), nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetBlockByNumber returns information about a block by block number.
-func (eth *EthAPI) GetBlockByNumber(quantity string, full bool) *common.Block {
+func (eth *EthAPI) GetBlockByNumber(quantity string, full bool) (*common.Block, error) {
 	req := eth.requestManager.newRequest("eth_getBlockByNumber")
 	req.Set("params", []interface{}{quantity, full})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result.ToBlock()
+			return result.ToBlock(), nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetTransactionByHash returns the information about a transaction requested by
 // transaction hash.
-func (eth *EthAPI) GetTransactionByHash(hash common.Hash) *common.Transaction {
+func (eth *EthAPI) GetTransactionByHash(hash common.Hash) (*common.Transaction, error) {
 	req := eth.requestManager.newRequest("eth_getTransactionByHash")
 	req.Set("params", hash.String())
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &common.Transaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result, nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetTransactionByBlockHashAndIndex returns information about a transaction by
 // block hash and transaction index position.
-func (eth *EthAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, index uint64) *common.Transaction {
+func (eth *EthAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, index uint64) (*common.Transaction, error) {
 	req := eth.requestManager.newRequest("eth_getTransactionByBlockHashAndIndex")
 	req.Set("params", []string{hash.String(), fmt.Sprintf("%v", index)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &common.Transaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result, nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetTransactionByBlockNumberAndIndex returns information about a transaction
 // by block number and transaction index position.
-func (eth *EthAPI) GetTransactionByBlockNumberAndIndex(quantity string, index uint64) *common.Transaction {
+func (eth *EthAPI) GetTransactionByBlockNumberAndIndex(quantity string, index uint64) (*common.Transaction, error) {
 	req := eth.requestManager.newRequest("eth_getTransactionByBlockNumberAndIndex")
 	req.Set("params", []string{quantity, fmt.Sprintf("%v", index)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &common.Transaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result, nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetTransactionReceipt Returns the receipt of a transaction by transaction hash.
-func (eth *EthAPI) GetTransactionReceipt(hash common.Hash) *common.TransactionReceipt {
+func (eth *EthAPI) GetTransactionReceipt(hash common.Hash) (*common.TransactionReceipt, error) {
 	req := eth.requestManager.newRequest("eth_getTransactionReceipt")
 	req.Set("params", hash.String())
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &common.TransactionReceipt{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result, nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetUncleByBlockHashAndIndex returns information about a uncle of a block by
 // hash and uncle index position.
-func (eth *EthAPI) GetUncleByBlockHashAndIndex(hash common.Hash, index uint64) *common.Block {
+func (eth *EthAPI) GetUncleByBlockHashAndIndex(hash common.Hash, index uint64) (*common.Block, error) {
 	req := eth.requestManager.newRequest("eth_getUncleByBlockHashAndIndex")
 	req.Set("params", []string{hash.String(), fmt.Sprintf("%d", index)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &common.Block{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result, nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetUncleByBlockNumberAndIndex returns information about a uncle of a block by
 // number and uncle index position.
-func (eth *EthAPI) GetUncleByBlockNumberAndIndex(quantity string, index uint64) *common.Block {
+func (eth *EthAPI) GetUncleByBlockNumberAndIndex(quantity string, index uint64) (*common.Block, error) {
 	req := eth.requestManager.newRequest("eth_getUncleByBlockNumberAndIndex")
 	req.Set("params", []string{quantity, fmt.Sprintf("%d", index)})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	result := &common.Block{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result
+			return result, nil
 		}
 	}
 
-	panic(fmt.Errorf("Failed to parse %v", resp.Get("result")))
+	return nil, fmt.Errorf("%v", resp.Get("result"))
 }
 
 // GetCompilers returns a list of available compilers in the client.
-func (eth *EthAPI) GetCompilers() (result []string) {
+func (eth *EthAPI) GetCompilers() (result []string, err error) {
 	req := eth.requestManager.newRequest("eth_getCompilers")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	for _, r := range resp.Get("result").([]interface{}) {
 		result = append(result, r.(string))
 	}
-	return result
+	return result, nil
 }
 
 // NewFilter creates a filter object, based on filter options, to notify when
 // the state changes (logs). To check if the state has changed, call
 // eth_getFilterChanges.
-func (eth *EthAPI) NewFilter(option *filter.Option) filter.Filter {
+func (eth *EthAPI) NewFilter(option *filter.Option) (filter.Filter, error) {
 	req := eth.requestManager.newRequest("eth_newFilter")
 	req.Set("params", option)
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return filter.NewFilter(option, id)
+	return filter.NewFilter(option, id), nil
 }
 
 // NewBlockFilter creates a filter in the node, to notify when a new block
 // arrives. To check if the state has changed, call eth_getFilterChanges.
-func (eth *EthAPI) NewBlockFilter() *filter.BlockFilter {
+func (eth *EthAPI) NewBlockFilter() (*filter.BlockFilter, error) {
 	req := eth.requestManager.newRequest("eth_newBlockFilter")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return filter.NewBlockFilter(id)
+	return filter.NewBlockFilter(id), nil
 }
 
 // NewPendingTransactionFilter creates a filter in the node, to notify when new
 // pending transactions arrive. To check if the state has changed, call
 // eth_getFilterChanges.
-func (eth *EthAPI) NewPendingTransactionFilter() *filter.PendingTransactionFilter {
+func (eth *EthAPI) NewPendingTransactionFilter() (*filter.PendingTransactionFilter, error) {
 	req := eth.requestManager.newRequest("eth_newPendingTransactionFilter")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return filter.NewPendingTransactionFilter(id)
+	return filter.NewPendingTransactionFilter(id), nil
 }
 
 // UninstallFilter uninstalls a filter with given id. Should always be called
 // when watch is no longer needed. Additonally Filters timeout when they aren't
 // requested with eth_getFilterChanges for a period of time.
-func (eth *EthAPI) UninstallFilter(filter filter.Filter) bool {
+func (eth *EthAPI) UninstallFilter(filter filter.Filter) (bool, error) {
 	req := eth.requestManager.newRequest("eth_uninstallFilter")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	return resp.Get("result").(bool)
+	return resp.Get("result").(bool), nil
 }
 
 // GetFilterChanges polling method for a filter, which returns an array of logs
 // which occurred since last poll.
-func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log) {
+func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterChanges")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	logs := resp.Get("result").([]interface{})
 	result = make([]common.Log, len(logs))
 	for i, data := range logs {
 		if err := json.Unmarshal(data.([]byte), &result[i]); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
-	return result
+	return result, nil
 }
 
 // GetFilterLogs returns an array of all logs matching filter with given id.
-func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log) {
+func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterLogs")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	logs := resp.Get("result").([]interface{})
 	result = make([]common.Log, len(logs))
 	for i, data := range logs {
 		if err := json.Unmarshal(data.([]byte), &result[i]); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
-	return result
+	return result, nil
 }
 
 // GetLogs returns an array of all logs matching a given filter object.
-func (eth *EthAPI) GetLogs(filter filter.Filter) (result []common.Log) {
+func (eth *EthAPI) GetLogs(filter filter.Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getLogs")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	logs := resp.Get("result").([]interface{})
 	result = make([]common.Log, len(logs))
 	for i, data := range logs {
 		if err := json.Unmarshal(data.([]byte), &result[i]); err != nil {
-			panic(err)
+			return nil, err
 		}
 	}
-	return result
+	return result, nil
 }
 
 // GetWork returns the hash of the current block, the seedHash, and the boundary
 // condition to be met ("target").
-func (eth *EthAPI) GetWork() (header common.Hash, seed common.Hash, boundary common.Hash) {
+func (eth *EthAPI) GetWork() (header, seed, boundary common.Hash, err error) {
 	req := eth.requestManager.newRequest("eth_getWork")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return common.NewHash(nil), common.NewHash(nil), common.NewHash(nil), err
 	}
 
 	results := resp.Get("result").([]string)
 	header = common.StringToHash(results[0])
 	seed = common.StringToHash(results[1])
 	boundary = common.StringToHash(results[2])
-	return header, seed, boundary
+	return header, seed, boundary, nil
 }
 
 // SubmitWork is used for submitting a proof-of-work solution.
-func (eth *EthAPI) SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) bool {
+func (eth *EthAPI) SubmitWork(nonce uint64, header, mixDigest common.Hash) (bool, error) {
 	req := eth.requestManager.newRequest("eth_submitWork")
 	req.Set("params", []string{
 		fmt.Sprintf("0x%16x", nonce),
@@ -722,8 +733,8 @@ func (eth *EthAPI) SubmitWork(nonce uint64, header common.Hash, mixDigest common
 	})
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	return resp.Get("result").(bool)
+	return resp.Get("result").(bool), nil
 }

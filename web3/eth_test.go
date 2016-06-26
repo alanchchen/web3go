@@ -47,118 +47,150 @@ type EthTestSuite struct {
 
 func (suite *EthTestSuite) Test_ProcotolVersion() {
 	eth := suite.eth
-	assert.NotEqual(suite.T(), "", eth.ProtocolVersion(), "version is empty")
+	result, err := eth.ProtocolVersion()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.NotEqual(suite.T(), "", result, "version is empty")
 }
 
 func (suite *EthTestSuite) Test_Syncing() {
 	eth := suite.eth
-	ok, _ := eth.Syncing()
-	assert.Exactly(suite.T(), false, ok, "should be false")
+	status, err := eth.Syncing()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.Exactly(suite.T(), false, status.Result, "should be false")
 }
 
 func (suite *EthTestSuite) Test_Coinbase() {
 	eth := suite.eth
-	address := eth.Coinbase()
+	address, err := eth.Coinbase()
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(), "0x407d73d8a49eeb85d32cf465507dd71d507100c1", address.String(), "should be equal")
 }
 
 func (suite *EthTestSuite) Test_Mining() {
 	eth := suite.eth
-	assert.EqualValues(suite.T(), true, eth.Mining(), "should be equal")
+	mining, err := eth.Mining()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), true, mining, "should be equal")
 }
 
 func (suite *EthTestSuite) Test_HashRate() {
 	eth := suite.eth
-	assert.EqualValues(suite.T(), 0x38a, eth.HashRate(), "Should be equal")
+	hashrate, err := eth.HashRate()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), 0x38a, hashrate, "Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GasPrice() {
 	eth := suite.eth
-	assert.EqualValues(suite.T(), big.NewInt(0x09184e72a000), eth.GasPrice(), "Should be equal")
+	price, err := eth.GasPrice()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), big.NewInt(0x09184e72a000), price, "Should be equal")
 }
 
 func (suite *EthTestSuite) Test_Accounts() {
 	eth := suite.eth
+	accounts, err := eth.Accounts()
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(), []common.Address{
 		common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")),
 		common.NewAddress(common.HexToBytes("0x407d73d8a49ee783afd32cf465507dd71d507100")),
-	}, eth.Accounts(), "Should be equal")
+	}, accounts, "Should be equal")
 }
 
 func (suite *EthTestSuite) Test_BlockNumber() {
 	eth := suite.eth
-	assert.EqualValues(suite.T(), big.NewInt(0x4b7), eth.BlockNumber(), "Should be equal")
+	blockNumber, err := eth.BlockNumber()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), big.NewInt(0x4b7), blockNumber, "Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetBalance() {
 	eth := suite.eth
+	balance, err := eth.GetBalance(common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")), "latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0x0234c8a3397aab58),
-		eth.GetBalance(common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")), "latest"),
+		balance,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetStorageAt() {
 	eth := suite.eth
+	storage, err := eth.GetStorageAt(common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")), 0, "latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		0x03,
-		eth.GetStorageAt(common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")), 0, "latest"),
+		storage,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetTransactionCount() {
 	eth := suite.eth
+	transactionCount, err := eth.GetTransactionCount(common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")), "latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0x1),
-		eth.GetTransactionCount(common.NewAddress(common.HexToBytes("0x407d73d8a49eeb85d32cf465507dd71d507100c1")), "latest"),
+		transactionCount,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetBlockTransactionCountByHash() {
 	eth := suite.eth
+	transactionCount, err := eth.GetBlockTransactionCountByHash(common.NewHash(common.HexToBytes("0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238")))
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0xb),
-		eth.GetBlockTransactionCountByHash(common.NewHash(common.HexToBytes("0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238"))),
+		transactionCount,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetBlockTransactionCountByNumber() {
 	eth := suite.eth
+	transactionCount, err := eth.GetBlockTransactionCountByNumber("latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0xa),
-		eth.GetBlockTransactionCountByNumber("latest"),
+		transactionCount,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetUncleCountByBlockHash() {
 	eth := suite.eth
+	uncleCount, err := eth.GetUncleCountByBlockHash(common.NewHash(common.HexToBytes("0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238")))
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0x1),
-		eth.GetUncleCountByBlockHash(common.NewHash(common.HexToBytes("0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238"))),
+		uncleCount,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetUncleCountByBlockNumber() {
 	eth := suite.eth
+	uncleCount, err := eth.GetUncleCountByBlockNumber("latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0x1),
-		eth.GetUncleCountByBlockNumber("latest"),
+		uncleCount,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_GetCode() {
 	eth := suite.eth
+	code, err := eth.GetCode(common.NewAddress(common.HexToBytes("0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b")), "0x2")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		common.HexToBytes("0x600160008035811a818181146012578301005b601b6001356025565b8060005260206000f25b600060078202905091905056"),
-		eth.GetCode(common.NewAddress(common.HexToBytes("0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b")), "0x2"),
+		code,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_Sign() {
 	eth := suite.eth
+	signedData, err := eth.Sign(common.NewAddress(common.HexToBytes("0xd1ade25ccd3d550a7eb532ac759cac7be09c2719")), []byte("Schoolbus"))
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		common.HexToBytes("0x2ac19db245478a06032e69cdbd2b54e648b78431d0a47bd1fbab18f79f820ba407466e37adbe9e84541cab97ab7d290f4a64a5825c876d22109f3bf813254e8601"),
-		eth.Sign(common.NewAddress(common.HexToBytes("0xd1ade25ccd3d550a7eb532ac759cac7be09c2719")), []byte("Schoolbus")),
+		signedData,
 		"Should be equal")
 }
 
@@ -172,17 +204,21 @@ func (suite *EthTestSuite) Test_SendTransaction() {
 		Value:    big.NewInt(0x9184e72a),
 		Data:     common.HexToBytes("0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"),
 	}
+	tx, err := eth.SendTransaction(req)
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		common.NewHash(common.HexToBytes("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331")),
-		eth.SendTransaction(req),
+		tx,
 		"Should be equal")
 }
 
 func (suite *EthTestSuite) Test_SendRawTransaction() {
 	eth := suite.eth
+	tx, err := eth.SendRawTransaction(common.HexToBytes("0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"))
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		common.NewHash(common.HexToBytes("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331")),
-		eth.SendRawTransaction(common.HexToBytes("0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675")),
+		tx,
 		"Should be equal")
 }
 
@@ -196,9 +232,11 @@ func (suite *EthTestSuite) Test_Call() {
 		Value:    big.NewInt(0x9184e72a),
 		Data:     common.HexToBytes("0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"),
 	}
+	result, err := eth.Call(req, "latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		common.HexToBytes("0x"),
-		eth.Call(req, "latest"),
+		result,
 		"Should be equal")
 }
 
@@ -212,9 +250,11 @@ func (suite *EthTestSuite) Test_EstimateGas() {
 		Value:    big.NewInt(0x9184e72a),
 		Data:     common.HexToBytes("0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675"),
 	}
+	gas, err := eth.EstimateGas(req, "latest")
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		big.NewInt(0x5208),
-		eth.EstimateGas(req, "latest"),
+		gas,
 		"Should be equal")
 }
 
@@ -240,8 +280,8 @@ func (suite *EthTestSuite) Test_GetBlockByHash() {
 		Transactions:    []common.Hash{},
 		Uncles:          []common.Hash{},
 	}
-	returnedBlock := eth.GetBlockByHash(common.NewHash(common.HexToBytes("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331")), true)
-
+	returnedBlock, err := eth.GetBlockByHash(common.NewHash(common.HexToBytes("0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331")), true)
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		block, returnedBlock, "Should be equal")
 }
@@ -268,8 +308,8 @@ func (suite *EthTestSuite) Test_GetBlockByNumber() {
 		Transactions:    []common.Hash{},
 		Uncles:          []common.Hash{},
 	}
-	returnedBlock := eth.GetBlockByNumber("0x1b4", true)
-
+	returnedBlock, err := eth.GetBlockByNumber("0x1b4", true)
+	assert.Nil(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(),
 		block, returnedBlock, "Should be equal")
 }

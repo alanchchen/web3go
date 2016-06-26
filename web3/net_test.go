@@ -45,17 +45,23 @@ type NetTestSuite struct {
 
 func (suite *NetTestSuite) Test_Version() {
 	net := suite.net
-	assert.NotEqual(suite.T(), "", net.Version(), "version is empty")
+	version, err := net.Version()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.NotEqual(suite.T(), "", version, "version is empty")
 }
 
 func (suite *NetTestSuite) Test_Listening() {
 	net := suite.net
-	assert.Exactly(suite.T(), true, net.Listening(), "should be true")
+	listening, err := net.Listening()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.Exactly(suite.T(), true, listening, "should be true")
 }
 
 func (suite *NetTestSuite) Test_PeerCount() {
 	net := suite.net
-	assert.EqualValues(suite.T(), 50, net.PeerCount(), "should be equal")
+	count, err := net.PeerCount()
+	assert.Nil(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), 50, count, "should be equal")
 }
 
 func (suite *NetTestSuite) SetupTest() {

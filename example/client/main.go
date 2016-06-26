@@ -52,8 +52,11 @@ func main() {
 	provider := provider.NewHTTPProvider(*hostname+":"+*port, rpc.GetDefaultMethod())
 	web3 := web3.NewWeb3(provider)
 
-	accounts := web3.Eth.Accounts()
-	for _, account := range accounts {
-		fmt.Printf("%s\n", account.String())
+	if accounts, err := web3.Eth.Accounts(); err == nil {
+		for _, account := range accounts {
+			fmt.Printf("%s\n", account.String())
+		}
+	} else {
+		fmt.Printf("%v", err)
 	}
 }

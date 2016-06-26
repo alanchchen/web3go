@@ -65,6 +65,7 @@ func (addr *Address) String() string {
 
 // SyncStatus ...
 type SyncStatus struct {
+	Result        bool
 	StartingBlock *big.Int
 	CurrentBlock  *big.Int
 	HighestBlock  *big.Int
