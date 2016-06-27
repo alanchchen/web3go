@@ -80,6 +80,87 @@ func (b *jsonBlock) ToBlock() (block *common.Block) {
 	return block
 }
 
+type jsonTransaction struct {
+	Hash             common.Hash    `json:"hash"`
+	Nonce            common.Hash    `json:"nonce"`
+	BlockHash        common.Hash    `json:"blockHash"`
+	BlockNumber      json.Number    `json:"blockNumber"`
+	TransactionIndex uint64         `json:"transactionIndex"`
+	From             common.Address `json:"from"`
+	To               common.Address `json:"to"`
+	Gas              json.Number    `json:"gas"`
+	GasPrice         json.Number    `json:"gasprice"`
+	Value            json.Number    `json:"value"`
+	Data             []byte         `json:"input"`
+}
+
+func (t *jsonTransaction) ToTransaction() (tx *common.Transaction) {
+	tx = &common.Transaction{}
+	tx.Hash = t.Hash
+	tx.Nonce = t.Nonce
+	tx.BlockHash = t.BlockHash
+	tx.BlockNumber = jsonNumbertoInt(t.BlockNumber)
+	tx.TransactionIndex = t.TransactionIndex
+	tx.From = t.From
+	tx.To = t.To
+	tx.Gas = jsonNumbertoInt(t.Gas)
+	tx.GasPrice = jsonNumbertoInt(t.GasPrice)
+	tx.Value = jsonNumbertoInt(t.Value)
+	tx.Data = t.Data
+	return tx
+}
+
+type jsonTransactionReceipt struct {
+	Hash              common.Hash    `json:"transactionHash"`
+	TransactionIndex  uint64         `json:"transactionIndex"`
+	BlockNumber       json.Number    `json:"blockNumber"`
+	BlockHash         common.Hash    `json:"blockHash"`
+	CumulativeGasUsed json.Number    `json:"cumulativeGasUsed"`
+	GasUsed           json.Number    `json:"gasUsed"`
+	ContractAddress   common.Address `json:"contractAddress"`
+	Logs              []jsonLog      `json:"logs"`
+}
+
+func (r *jsonTransactionReceipt) ToTransactionReceipt() (receipt *common.TransactionReceipt) {
+	receipt = &common.TransactionReceipt{}
+	receipt.Hash = r.Hash
+	receipt.TransactionIndex = r.TransactionIndex
+	receipt.BlockNumber = jsonNumbertoInt(r.BlockNumber)
+	receipt.BlockHash = r.BlockHash
+	receipt.CumulativeGasUsed = jsonNumbertoInt(r.CumulativeGasUsed)
+	receipt.GasUsed = jsonNumbertoInt(r.GasUsed)
+	receipt.ContractAddress = r.ContractAddress
+	receipt.Logs = make([]common.Log, 0)
+	for _, l := range r.Logs {
+		receipt.Logs = append(receipt.Logs, l.ToLog())
+	}
+	return receipt
+}
+
+type jsonLog struct {
+	LogIndex         uint64         `json:"logIndex"`
+	BlockNumber      json.Number    `json:"blockNumber"`
+	BlockHash        common.Hash    `json:"blockHash"`
+	TransactionHash  common.Hash    `json:"transactionHash"`
+	TransactionIndex uint64         `json:"transactionIndex"`
+	Address          common.Address `json:"address"`
+	Data             []byte         `json:"data"`
+	Topics           common.Topics  `json:"topics"`
+}
+
+func (l jsonLog) ToLog() (log common.Log) {
+	log = common.Log{}
+	log.LogIndex = l.LogIndex
+	log.BlockNumber = jsonNumbertoInt(l.BlockNumber)
+	log.BlockHash = l.BlockHash
+	log.TransactionHash = l.TransactionHash
+	log.TransactionIndex = l.TransactionIndex
+	log.Address = l.Address
+	log.Data = l.Data
+	log.Topics = l.Topics
+	return log
+}
+
 func jsonNumbertoInt(data json.Number) *big.Int {
 	f := big.NewFloat(0.0)
 	f.SetString(string(data))

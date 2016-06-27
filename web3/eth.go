@@ -461,10 +461,10 @@ func (eth *EthAPI) GetTransactionByHash(hash common.Hash) (*common.Transaction, 
 		return nil, err
 	}
 
-	result := &common.Transaction{}
+	result := &jsonTransaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result, nil
+			return result.ToTransaction(), nil
 		}
 	}
 
@@ -481,10 +481,10 @@ func (eth *EthAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, index uin
 		return nil, err
 	}
 
-	result := &common.Transaction{}
+	result := &jsonTransaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result, nil
+			return result.ToTransaction(), nil
 		}
 	}
 
@@ -501,10 +501,10 @@ func (eth *EthAPI) GetTransactionByBlockNumberAndIndex(quantity string, index ui
 		return nil, err
 	}
 
-	result := &common.Transaction{}
+	result := &jsonTransaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result, nil
+			return result.ToTransaction(), nil
 		}
 	}
 
@@ -520,10 +520,10 @@ func (eth *EthAPI) GetTransactionReceipt(hash common.Hash) (*common.TransactionR
 		return nil, err
 	}
 
-	result := &common.TransactionReceipt{}
+	result := &jsonTransactionReceipt{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result, nil
+			return result.ToTransactionReceipt(), nil
 		}
 	}
 
@@ -540,10 +540,10 @@ func (eth *EthAPI) GetUncleByBlockHashAndIndex(hash common.Hash, index uint64) (
 		return nil, err
 	}
 
-	result := &common.Block{}
+	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result, nil
+			return result.ToBlock(), nil
 		}
 	}
 
@@ -560,10 +560,10 @@ func (eth *EthAPI) GetUncleByBlockNumberAndIndex(quantity string, index uint64) 
 		return nil, err
 	}
 
-	result := &common.Block{}
+	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
-			return result, nil
+			return result.ToBlock(), nil
 		}
 	}
 
