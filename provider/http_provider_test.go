@@ -60,7 +60,7 @@ func (suite *HTTPProviderTestSuite) Test_Send() {
 		Identifier: 10}
 	resp, err := provider.Send(req)
 
-	assert.Nil(suite.T(), err, "Should be nil")
+	assert.NoError(suite.T(), err, "Should be no error")
 	assert.EqualValues(suite.T(), req.Version, req.Version, "should be equal")
 	assert.EqualValues(suite.T(), req.Identifier, resp.ID(), "should be equal")
 	assert.EqualValues(suite.T(), "ok", resp.Get("result").(string), "should be equal")
