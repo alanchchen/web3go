@@ -660,9 +660,15 @@ func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log, 
 	}
 
 	logs := resp.Get("result").([]interface{})
-	result = make([]common.Log, len(logs))
-	for i, data := range logs {
-		if err := json.Unmarshal(data.([]byte), &result[i]); err != nil {
+	for _, data := range logs {
+		if jsonBytes, err := json.Marshal(data); err == nil {
+			l := &jsonLog{}
+			if err := json.Unmarshal(jsonBytes, l); err == nil {
+				result = append(result, l.ToLog())
+			} else {
+				return nil, err
+			}
+		} else {
 			return nil, err
 		}
 	}
@@ -679,9 +685,15 @@ func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log, err
 	}
 
 	logs := resp.Get("result").([]interface{})
-	result = make([]common.Log, len(logs))
-	for i, data := range logs {
-		if err := json.Unmarshal(data.([]byte), &result[i]); err != nil {
+	for _, data := range logs {
+		if jsonBytes, err := json.Marshal(data); err == nil {
+			l := &jsonLog{}
+			if err := json.Unmarshal(jsonBytes, l); err == nil {
+				result = append(result, l.ToLog())
+			} else {
+				return nil, err
+			}
+		} else {
 			return nil, err
 		}
 	}
@@ -698,9 +710,15 @@ func (eth *EthAPI) GetLogs(filter filter.Filter) (result []common.Log, err error
 	}
 
 	logs := resp.Get("result").([]interface{})
-	result = make([]common.Log, len(logs))
-	for i, data := range logs {
-		if err := json.Unmarshal(data.([]byte), &result[i]); err != nil {
+	for _, data := range logs {
+		if jsonBytes, err := json.Marshal(data); err == nil {
+			l := &jsonLog{}
+			if err := json.Unmarshal(jsonBytes, l); err == nil {
+				result = append(result, l.ToLog())
+			} else {
+				return nil, err
+			}
+		} else {
 			return nil, err
 		}
 	}
@@ -716,10 +734,10 @@ func (eth *EthAPI) GetWork() (header, seed, boundary common.Hash, err error) {
 		return common.NewHash(nil), common.NewHash(nil), common.NewHash(nil), err
 	}
 
-	results := resp.Get("result").([]string)
-	header = common.StringToHash(results[0])
-	seed = common.StringToHash(results[1])
-	boundary = common.StringToHash(results[2])
+	results := resp.Get("result").([]interface{})
+	header = common.StringToHash(results[0].(string))
+	seed = common.StringToHash(results[1].(string))
+	boundary = common.StringToHash(results[2].(string))
 	return header, seed, boundary, nil
 }
 

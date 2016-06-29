@@ -31,6 +31,7 @@ package web3
 
 import (
 	"math/big"
+	"strings"
 	"testing"
 
 	"github.com/alanchchen/web3go/common"
@@ -499,6 +500,103 @@ func (suite *EthTestSuite) Test_UninstallFilter() {
 	ok, err := eth.UninstallFilter(filter)
 	assert.NoError(suite.T(), err, "Should be no error")
 	assert.True(suite.T(), ok, "Should be true")
+}
+
+func (suite *EthTestSuite) Test_GetFilterChanges() {
+	eth := suite.eth
+	option := &filter.Option{}
+	filter, err := eth.NewFilter(option)
+	logs := []common.Log{
+		{
+			LogIndex:         0x1,
+			BlockNumber:      big.NewInt(0x1b4),
+			BlockHash:        common.NewHash(common.HexToBytes("0x8216c5785ac562ff41e2dcfdf5785ac562ff41e2dcfdf829c5a142f1fccd7d")),
+			TransactionHash:  common.NewHash(common.HexToBytes("0xdf829c5a142f1fccd7d8216c5785ac562ff41e2dcfdf5785ac562ff41e2dcf")),
+			TransactionIndex: 0,
+			Address:          common.NewAddress(common.HexToBytes("0x16c5785ac562ff41e2dcfdf829c5a142f1fccd7d")),
+			Data:             []byte("0000000000000000000000000000000000000000000000000000000000000000"),
+			Topics: common.Topics{
+				{
+					Data: common.HexToBytes("0x59ebeb90bc63057b6515673c3ecf9438e5058bca0f92585014eced636878c9a5"),
+				},
+			},
+		},
+	}
+	returnedLogs, err := eth.GetFilterChanges(filter)
+	assert.NoError(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), logs, returnedLogs, "Should be equal")
+}
+
+func (suite *EthTestSuite) Test_GetFilterLogs() {
+	eth := suite.eth
+	option := &filter.Option{}
+	filter, err := eth.NewFilter(option)
+	logs := []common.Log{
+		{
+			LogIndex:         0x1,
+			BlockNumber:      big.NewInt(0x1b4),
+			BlockHash:        common.NewHash(common.HexToBytes("0x8216c5785ac562ff41e2dcfdf5785ac562ff41e2dcfdf829c5a142f1fccd7d")),
+			TransactionHash:  common.NewHash(common.HexToBytes("0xdf829c5a142f1fccd7d8216c5785ac562ff41e2dcfdf5785ac562ff41e2dcf")),
+			TransactionIndex: 0,
+			Address:          common.NewAddress(common.HexToBytes("0x16c5785ac562ff41e2dcfdf829c5a142f1fccd7d")),
+			Data:             []byte("0000000000000000000000000000000000000000000000000000000000000000"),
+			Topics: common.Topics{
+				{
+					Data: common.HexToBytes("0x59ebeb90bc63057b6515673c3ecf9438e5058bca0f92585014eced636878c9a5"),
+				},
+			},
+		},
+	}
+	returnedLogs, err := eth.GetFilterLogs(filter)
+	assert.NoError(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), logs, returnedLogs, "Should be equal")
+}
+
+func (suite *EthTestSuite) Test_GetLogs() {
+	eth := suite.eth
+	option := &filter.Option{}
+	filter, err := eth.NewFilter(option)
+	logs := []common.Log{
+		{
+			LogIndex:         0x1,
+			BlockNumber:      big.NewInt(0x1b4),
+			BlockHash:        common.NewHash(common.HexToBytes("0x8216c5785ac562ff41e2dcfdf5785ac562ff41e2dcfdf829c5a142f1fccd7d")),
+			TransactionHash:  common.NewHash(common.HexToBytes("0xdf829c5a142f1fccd7d8216c5785ac562ff41e2dcfdf5785ac562ff41e2dcf")),
+			TransactionIndex: 0,
+			Address:          common.NewAddress(common.HexToBytes("0x16c5785ac562ff41e2dcfdf829c5a142f1fccd7d")),
+			Data:             []byte("0000000000000000000000000000000000000000000000000000000000000000"),
+			Topics: common.Topics{
+				{
+					Data: common.HexToBytes("0x59ebeb90bc63057b6515673c3ecf9438e5058bca0f92585014eced636878c9a5"),
+				},
+			},
+		},
+	}
+	returnedLogs, err := eth.GetLogs(filter)
+	assert.NoError(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), logs, returnedLogs, "Should be equal")
+}
+
+func (suite *EthTestSuite) Test_GetWork() {
+	eth := suite.eth
+	works := []string{
+		"0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+		"0x5EED00000000000000000000000000005EED0000000000000000000000000000",
+		"0xd1ff1c01710000000000000000000000d1ff1c01710000000000000000000000"}
+	header, seed, boundary, err := eth.GetWork()
+	assert.NoError(suite.T(), err, "Should be no error")
+	assert.EqualValues(suite.T(), strings.ToLower(works[0]), header.String(), "Should be equal")
+	assert.EqualValues(suite.T(), strings.ToLower(works[1]), seed.String(), "Should be equal")
+	assert.EqualValues(suite.T(), strings.ToLower(works[2]), boundary.String(), "Should be equal")
+}
+
+func (suite *EthTestSuite) Test_SubmitWork() {
+	eth := suite.eth
+	header := common.NewHash(common.HexToBytes("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"))
+	mixDigest := common.NewHash(common.HexToBytes("0xD1FE5700000000000000000000000000D1FE5700000000000000000000000000"))
+	result, err := eth.SubmitWork(0, header, mixDigest)
+	assert.NoError(suite.T(), err, "Should be no error")
+	assert.True(suite.T(), result, "Should be true")
 }
 
 func (suite *EthTestSuite) SetupTest() {

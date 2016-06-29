@@ -107,7 +107,7 @@ func (tx *Transaction) String() string {
 }
 
 type Topic struct {
-	Data interface{}
+	Data []byte
 }
 
 type Topics []Topic
