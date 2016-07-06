@@ -35,7 +35,6 @@ import (
 	"testing"
 
 	"github.com/alanchchen/web3go/common"
-	"github.com/alanchchen/web3go/filter"
 	"github.com/alanchchen/web3go/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -464,7 +463,7 @@ func (suite *EthTestSuite) Test_GetCompilers() {
 
 func (suite *EthTestSuite) Test_NewFilter() {
 	eth := suite.eth
-	option := &filter.Option{}
+	option := &FilterOption{}
 	filter, err := eth.NewFilter(option)
 	assert.NoError(suite.T(), err, "Should be no error")
 	if assert.NotNil(suite.T(), filter, "Should be equal") {
@@ -495,7 +494,7 @@ func (suite *EthTestSuite) Test_NewPendingTransactionFilter() {
 
 func (suite *EthTestSuite) Test_UninstallFilter() {
 	eth := suite.eth
-	option := &filter.Option{}
+	option := &FilterOption{}
 	filter, err := eth.NewFilter(option)
 	ok, err := eth.UninstallFilter(filter)
 	assert.NoError(suite.T(), err, "Should be no error")
@@ -504,7 +503,7 @@ func (suite *EthTestSuite) Test_UninstallFilter() {
 
 func (suite *EthTestSuite) Test_GetFilterChanges() {
 	eth := suite.eth
-	option := &filter.Option{}
+	option := &FilterOption{}
 	filter, err := eth.NewFilter(option)
 	logs := []common.Log{
 		{
@@ -529,7 +528,7 @@ func (suite *EthTestSuite) Test_GetFilterChanges() {
 
 func (suite *EthTestSuite) Test_GetFilterLogs() {
 	eth := suite.eth
-	option := &filter.Option{}
+	option := &FilterOption{}
 	filter, err := eth.NewFilter(option)
 	logs := []common.Log{
 		{
@@ -554,7 +553,7 @@ func (suite *EthTestSuite) Test_GetFilterLogs() {
 
 func (suite *EthTestSuite) Test_GetLogs() {
 	eth := suite.eth
-	option := &filter.Option{}
+	option := &FilterOption{}
 	filter, err := eth.NewFilter(option)
 	logs := []common.Log{
 		{

@@ -27,18 +27,18 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-package filter
+package web3
 
 // BlockFilter ...
 type BlockFilter struct {
-	BaseFilter
+	baseFilter
 }
 
 // NewBlockFilter creates a BlockFilter with corresponding filter id
-func NewBlockFilter(id uint64) *BlockFilter {
+func newBlockFilter(id uint64) *BlockFilter {
 	return &BlockFilter{
-		BaseFilter{
-			option:   &Option{},
+		baseFilter{
+			option:   &FilterOption{},
 			filterID: id,
 		},
 	}

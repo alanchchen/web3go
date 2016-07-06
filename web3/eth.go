@@ -36,7 +36,6 @@ import (
 	"strconv"
 
 	"github.com/alanchchen/web3go/common"
-	"github.com/alanchchen/web3go/filter"
 	"github.com/alanchchen/web3go/rpc"
 )
 
@@ -75,13 +74,13 @@ type Eth interface {
 	// GompileLLL
 	// CompileSolidity
 	// CompileSerpent
-	NewFilter(option *filter.Option) (filter.Filter, error)
-	NewBlockFilter() (*filter.BlockFilter, error)
-	NewPendingTransactionFilter() (*filter.PendingTransactionFilter, error)
-	UninstallFilter(filter filter.Filter) (bool, error)
-	GetFilterChanges(filter filter.Filter) ([]common.Log, error)
-	GetFilterLogs(filter filter.Filter) ([]common.Log, error)
-	GetLogs(filter filter.Filter) ([]common.Log, error)
+	NewFilter(option *FilterOption) (Filter, error)
+	NewBlockFilter() (*BlockFilter, error)
+	NewPendingTransactionFilter() (*PendingTransactionFilter, error)
+	UninstallFilter(filter Filter) (bool, error)
+	GetFilterChanges(filter Filter) ([]common.Log, error)
+	GetFilterLogs(filter Filter) ([]common.Log, error)
+	GetLogs(filter Filter) ([]common.Log, error)
 	GetWork() (common.Hash, common.Hash, common.Hash, error)
 	SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) (bool, error)
 	// SubmitHashrate
@@ -587,7 +586,7 @@ func (eth *EthAPI) GetCompilers() (result []string, err error) {
 // NewFilter creates a filter object, based on filter options, to notify when
 // the state changes (logs). To check if the state has changed, call
 // eth_getFilterChanges.
-func (eth *EthAPI) NewFilter(option *filter.Option) (filter.Filter, error) {
+func (eth *EthAPI) NewFilter(option *FilterOption) (Filter, error) {
 	req := eth.requestManager.newRequest("eth_newFilter")
 	req.Set("params", option)
 	resp, err := eth.requestManager.send(req)
@@ -599,12 +598,12 @@ func (eth *EthAPI) NewFilter(option *filter.Option) (filter.Filter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return filter.NewFilter(option, id), nil
+	return newFilter(eth, option, id), nil
 }
 
 // NewBlockFilter creates a filter in the node, to notify when a new block
 // arrives. To check if the state has changed, call eth_getFilterChanges.
-func (eth *EthAPI) NewBlockFilter() (*filter.BlockFilter, error) {
+func (eth *EthAPI) NewBlockFilter() (*BlockFilter, error) {
 	req := eth.requestManager.newRequest("eth_newBlockFilter")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
@@ -615,13 +614,13 @@ func (eth *EthAPI) NewBlockFilter() (*filter.BlockFilter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return filter.NewBlockFilter(id), nil
+	return newBlockFilter(id), nil
 }
 
 // NewPendingTransactionFilter creates a filter in the node, to notify when new
 // pending transactions arrive. To check if the state has changed, call
 // eth_getFilterChanges.
-func (eth *EthAPI) NewPendingTransactionFilter() (*filter.PendingTransactionFilter, error) {
+func (eth *EthAPI) NewPendingTransactionFilter() (*PendingTransactionFilter, error) {
 	req := eth.requestManager.newRequest("eth_newPendingTransactionFilter")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
@@ -632,13 +631,13 @@ func (eth *EthAPI) NewPendingTransactionFilter() (*filter.PendingTransactionFilt
 	if err != nil {
 		return nil, err
 	}
-	return filter.NewPendingTransactionFilter(id), nil
+	return newPendingTransactionFilter(id), nil
 }
 
 // UninstallFilter uninstalls a filter with given id. Should always be called
 // when watch is no longer needed. Additonally Filters timeout when they aren't
 // requested with eth_getFilterChanges for a period of time.
-func (eth *EthAPI) UninstallFilter(filter filter.Filter) (bool, error) {
+func (eth *EthAPI) UninstallFilter(filter Filter) (bool, error) {
 	req := eth.requestManager.newRequest("eth_uninstallFilter")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
@@ -651,7 +650,7 @@ func (eth *EthAPI) UninstallFilter(filter filter.Filter) (bool, error) {
 
 // GetFilterChanges polling method for a filter, which returns an array of logs
 // which occurred since last poll.
-func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log, err error) {
+func (eth *EthAPI) GetFilterChanges(filter Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterChanges")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
@@ -676,7 +675,7 @@ func (eth *EthAPI) GetFilterChanges(filter filter.Filter) (result []common.Log, 
 }
 
 // GetFilterLogs returns an array of all logs matching filter with given id.
-func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log, err error) {
+func (eth *EthAPI) GetFilterLogs(filter Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterLogs")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
@@ -701,7 +700,7 @@ func (eth *EthAPI) GetFilterLogs(filter filter.Filter) (result []common.Log, err
 }
 
 // GetLogs returns an array of all logs matching a given filter object.
-func (eth *EthAPI) GetLogs(filter filter.Filter) (result []common.Log, err error) {
+func (eth *EthAPI) GetLogs(filter Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getLogs")
 	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
