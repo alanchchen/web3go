@@ -124,7 +124,6 @@ func (f *baseFilter) Watch() WatchChannel {
 			case <-ticker.C:
 				results, _ := f.eth.GetFilterChanges(f)
 				for _, r := range results {
-					// fmt.Printf("push %v\n", r)
 					dataCh <- r
 				}
 			}
