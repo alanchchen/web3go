@@ -47,6 +47,14 @@ const (
 	dataBufferSize = 16
 )
 
+type FilterType int
+
+const (
+	TypeNormal FilterType = iota
+	TypeBlockFilter
+	TypeTransactionFilter
+)
+
 // FilterOption ...
 type FilterOption struct {
 	FromBlock string        `json:"fromBlock,omitempty"`
@@ -63,24 +71,23 @@ func (opt *FilterOption) String() string {
 // Filter ...
 type Filter interface {
 	Watch() WatchChannel
-	GetOption() *FilterOption
 	ID() uint64
 }
 
 type baseFilter struct {
-	eth      Eth
-	option   *FilterOption
-	filterID uint64
+	eth        Eth
+	filterType FilterType
+	filterID   uint64
 }
 
 // WatchChannel ...
 type WatchChannel interface {
-	Next() (common.Log, error)
+	Next() (interface{}, error)
 	Close()
 }
 
 type watchChannel struct {
-	dataCh  chan common.Log
+	dataCh  chan interface{}
 	closeCh chan struct{}
 }
 
@@ -88,24 +95,24 @@ type watchChannel struct {
 // Filter
 
 // newFilter creates a filter object, based on filter options and filter id.
-func newFilter(eth Eth, option *FilterOption, id uint64) Filter {
+func newFilter(eth Eth, filterType FilterType, id uint64) Filter {
 	return &baseFilter{
-		eth:      eth,
-		option:   option,
-		filterID: id,
+		eth:        eth,
+		filterType: filterType,
+		filterID:   id,
 	}
 }
 
 func (f *baseFilter) Watch() WatchChannel {
-	dataCh := make(chan common.Log, dataBufferSize)
+	dataCh := make(chan interface{}, dataBufferSize)
 	closeCh := make(chan struct{})
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	go func(wg *sync.WaitGroup, closeCh <-chan struct{}, dataCh chan<- common.Log) {
+	go func(wg *sync.WaitGroup, closeCh <-chan struct{}, dataCh chan<- interface{}) {
 		// TODO: configurable timer
-		timer := time.NewTimer(pollInterval)
-		defer timer.Stop()
+		ticker := time.NewTicker(pollInterval)
+		defer ticker.Stop()
 
 		wg.Done()
 
@@ -114,9 +121,10 @@ func (f *baseFilter) Watch() WatchChannel {
 			case <-closeCh:
 				close(dataCh)
 				return
-			case <-timer.C:
+			case <-ticker.C:
 				results, _ := f.eth.GetFilterChanges(f)
 				for _, r := range results {
+					// fmt.Printf("push %v\n", r)
 					dataCh <- r
 				}
 			}
@@ -134,19 +142,14 @@ func (f *baseFilter) ID() uint64 {
 	return f.filterID
 }
 
-// GetOption returns the filter option to the filter
-func (f *baseFilter) GetOption() *FilterOption {
-	return f.option
-}
-
 // -----------------------------------------------------------------------------
 // WatchChannel
 
-func (wc *watchChannel) Next() (common.Log, error) {
-	if log, ok := <-wc.dataCh; ok {
-		return log, nil
+func (wc *watchChannel) Next() (interface{}, error) {
+	if data, ok := <-wc.dataCh; ok {
+		return data, nil
 	}
-	return common.Log{}, ErrChannelClosed
+	return nil, ErrChannelClosed
 }
 
 func (wc *watchChannel) Close() {

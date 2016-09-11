@@ -75,12 +75,12 @@ type Eth interface {
 	// CompileSolidity
 	// CompileSerpent
 	NewFilter(option *FilterOption) (Filter, error)
-	NewBlockFilter() (*BlockFilter, error)
-	NewPendingTransactionFilter() (*PendingTransactionFilter, error)
+	NewBlockFilter() (Filter, error)
+	NewPendingTransactionFilter() (Filter, error)
 	UninstallFilter(filter Filter) (bool, error)
-	GetFilterChanges(filter Filter) ([]common.Log, error)
-	GetFilterLogs(filter Filter) ([]common.Log, error)
-	GetLogs(filter Filter) ([]common.Log, error)
+	GetFilterChanges(filter Filter) ([]interface{}, error)
+	GetFilterLogs(filter Filter) ([]interface{}, error)
+	GetLogs(filter Filter) ([]interface{}, error)
 	GetWork() (common.Hash, common.Hash, common.Hash, error)
 	SubmitWork(nonce uint64, header common.Hash, mixDigest common.Hash) (bool, error)
 	// SubmitHashrate
@@ -747,12 +747,12 @@ func (eth *EthAPI) NewFilter(option *FilterOption) (Filter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newFilter(eth, option, id), nil
+	return newFilter(eth, TypeNormal, id), nil
 }
 
 // NewBlockFilter creates a filter in the node, to notify when a new block
 // arrives. To check if the state has changed, call eth_getFilterChanges.
-func (eth *EthAPI) NewBlockFilter() (*BlockFilter, error) {
+func (eth *EthAPI) NewBlockFilter() (Filter, error) {
 	req := eth.requestManager.newRequest("eth_newBlockFilter")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
@@ -767,13 +767,13 @@ func (eth *EthAPI) NewBlockFilter() (*BlockFilter, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newBlockFilter(id), nil
+	return newFilter(eth, TypeBlockFilter, id), nil
 }
 
 // NewPendingTransactionFilter creates a filter in the node, to notify when new
 // pending transactions arrive. To check if the state has changed, call
 // eth_getFilterChanges.
-func (eth *EthAPI) NewPendingTransactionFilter() (*PendingTransactionFilter, error) {
+func (eth *EthAPI) NewPendingTransactionFilter() (Filter, error) {
 	req := eth.requestManager.newRequest("eth_newPendingTransactionFilter")
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
@@ -788,7 +788,7 @@ func (eth *EthAPI) NewPendingTransactionFilter() (*PendingTransactionFilter, err
 	if err != nil {
 		return nil, err
 	}
-	return newPendingTransactionFilter(id), nil
+	return newFilter(eth, TypeTransactionFilter, id), nil
 }
 
 // UninstallFilter uninstalls a filter with given id. Should always be called
@@ -811,7 +811,7 @@ func (eth *EthAPI) UninstallFilter(filter Filter) (bool, error) {
 
 // GetFilterChanges polling method for a filter, which returns an array of logs
 // which occurred since last poll.
-func (eth *EthAPI) GetFilterChanges(filter Filter) (result []common.Log, err error) {
+func (eth *EthAPI) GetFilterChanges(filter Filter) (result []interface{}, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterChanges")
 	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
@@ -823,24 +823,11 @@ func (eth *EthAPI) GetFilterChanges(filter Filter) (result []common.Log, err err
 		return nil, resp.Error()
 	}
 
-	logs := resp.Get("result").([]interface{})
-	for _, data := range logs {
-		if jsonBytes, err := json.Marshal(data); err == nil {
-			l := &jsonLog{}
-			if err := json.Unmarshal(jsonBytes, l); err == nil {
-				result = append(result, l.ToLog())
-			} else {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	}
-	return result, nil
+	return resp.Get("result").([]interface{}), nil
 }
 
 // GetFilterLogs returns an array of all logs matching filter with given id.
-func (eth *EthAPI) GetFilterLogs(filter Filter) (result []common.Log, err error) {
+func (eth *EthAPI) GetFilterLogs(filter Filter) (result []interface{}, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterLogs")
 	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
@@ -852,24 +839,11 @@ func (eth *EthAPI) GetFilterLogs(filter Filter) (result []common.Log, err error)
 		return nil, resp.Error()
 	}
 
-	logs := resp.Get("result").([]interface{})
-	for _, data := range logs {
-		if jsonBytes, err := json.Marshal(data); err == nil {
-			l := &jsonLog{}
-			if err := json.Unmarshal(jsonBytes, l); err == nil {
-				result = append(result, l.ToLog())
-			} else {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	}
-	return result, nil
+	return resp.Get("result").([]interface{}), nil
 }
 
 // GetLogs returns an array of all logs matching a given filter object.
-func (eth *EthAPI) GetLogs(filter Filter) (result []common.Log, err error) {
+func (eth *EthAPI) GetLogs(filter Filter) (result []interface{}, err error) {
 	req := eth.requestManager.newRequest("eth_getLogs")
 	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
@@ -881,20 +855,7 @@ func (eth *EthAPI) GetLogs(filter Filter) (result []common.Log, err error) {
 		return nil, resp.Error()
 	}
 
-	logs := resp.Get("result").([]interface{})
-	for _, data := range logs {
-		if jsonBytes, err := json.Marshal(data); err == nil {
-			l := &jsonLog{}
-			if err := json.Unmarshal(jsonBytes, l); err == nil {
-				result = append(result, l.ToLog())
-			} else {
-				return nil, err
-			}
-		} else {
-			return nil, err
-		}
-	}
-	return result, nil
+	return resp.Get("result").([]interface{}), nil
 }
 
 // GetWork returns the hash of the current block, the seedHash, and the boundary
