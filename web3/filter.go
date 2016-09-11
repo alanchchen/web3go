@@ -30,108 +30,103 @@
 package web3
 
 import (
+	"encoding/json"
+	"errors"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/alanchchen/web3go/common"
 )
 
+var (
+	ErrChannelClosed = errors.New("Channel is closed")
+)
+
 const (
-	pollInterval = 100 * time.Millisecond
+	pollInterval   = 100 * time.Millisecond
+	dataBufferSize = 16
 )
 
 // FilterOption ...
 type FilterOption struct {
-	FromBlock string        `json:"fromBlock"`
-	ToBlock   string        `json:"toBlock"`
-	Address   interface{}   `json:"address"`
-	Topics    common.Topics `json:"topics"`
+	FromBlock string        `json:"fromBlock,omitempty"`
+	ToBlock   string        `json:"toBlock,omitempty"`
+	Address   interface{}   `json:"address,omitempty"`
+	Topics    common.Topics `json:"topics,omitempty"`
+}
+
+func (opt *FilterOption) String() string {
+	rawBytes, _ := json.Marshal(opt)
+	return string(rawBytes)
 }
 
 // Filter ...
 type Filter interface {
-	Watch(func([]common.Log))
-	StopWatching()
+	Watch() WatchChannel
 	GetOption() *FilterOption
 	ID() uint64
 }
 
-// baseFilter ...
 type baseFilter struct {
-	eth          Eth
-	option       *FilterOption
-	filterID     uint64
-	callbackLock sync.RWMutex
-	callbacks    []func([]common.Log)
-	updateCh     chan struct{}
-	running      int32
+	eth      Eth
+	option   *FilterOption
+	filterID uint64
 }
 
-// NewFilter creates a filter object, based on filter options and filter id.
+// WatchChannel ...
+type WatchChannel interface {
+	Next() (common.Log, error)
+	Close()
+}
+
+type watchChannel struct {
+	dataCh  chan common.Log
+	closeCh chan struct{}
+}
+
+// -----------------------------------------------------------------------------
+// Filter
+
+// newFilter creates a filter object, based on filter options and filter id.
 func newFilter(eth Eth, option *FilterOption, id uint64) Filter {
 	return &baseFilter{
 		eth:      eth,
 		option:   option,
 		filterID: id,
-		updateCh: make(chan struct{}),
 	}
 }
 
-func (f *baseFilter) pollLoop(ready chan bool) {
-	atomic.StoreInt32(&f.running, 1)
-	defer atomic.StoreInt32(&f.running, 0)
-	ready <- true
-	// TODO: configurable timer
-	timer := time.NewTimer(pollInterval)
-	defer timer.Stop()
-	for {
-		select {
-		case <-f.updateCh:
-			f.callbackLock.Lock()
-			f.callbacks = f.callbacks[:0]
-			f.callbackLock.Unlock()
-			return
-		case <-timer.C:
-			f.poll()
+func (f *baseFilter) Watch() WatchChannel {
+	dataCh := make(chan common.Log, dataBufferSize)
+	closeCh := make(chan struct{})
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func(wg *sync.WaitGroup, closeCh <-chan struct{}, dataCh chan<- common.Log) {
+		// TODO: configurable timer
+		timer := time.NewTimer(pollInterval)
+		defer timer.Stop()
+
+		wg.Done()
+
+		for {
+			select {
+			case <-closeCh:
+				close(dataCh)
+				return
+			case <-timer.C:
+				results, _ := f.eth.GetFilterChanges(f)
+				for _, r := range results {
+					dataCh <- r
+				}
+			}
 		}
+	}(&wg, closeCh, dataCh)
+
+	return &watchChannel{
+		dataCh:  dataCh,
+		closeCh: closeCh,
 	}
-}
-
-func (f *baseFilter) poll() {
-	if results, err := f.eth.GetFilterChanges(f); err != nil {
-		var wg sync.WaitGroup
-		f.callbackLock.RLock()
-		for _, callback := range f.callbacks {
-			wg.Add(1)
-			cb := callback
-			go func(cb func([]common.Log)) {
-				defer wg.Done()
-				cb(results)
-			}(cb)
-		}
-		f.callbackLock.RUnlock()
-		wg.Wait()
-	} else {
-		// error
-	}
-}
-
-func (f *baseFilter) Watch(callback func([]common.Log)) {
-	f.callbackLock.Lock()
-	f.callbacks = append(f.callbacks, callback)
-	f.callbackLock.Unlock()
-
-	if atomic.LoadInt32(&f.running) == 0 {
-		ready := make(chan bool)
-		go f.pollLoop(ready)
-		<-ready
-		close(ready)
-	}
-}
-
-func (f *baseFilter) StopWatching() {
-	f.updateCh <- struct{}{}
 }
 
 // ID returns the filter identifier
@@ -142,4 +137,18 @@ func (f *baseFilter) ID() uint64 {
 // GetOption returns the filter option to the filter
 func (f *baseFilter) GetOption() *FilterOption {
 	return f.option
+}
+
+// -----------------------------------------------------------------------------
+// WatchChannel
+
+func (wc *watchChannel) Next() (common.Log, error) {
+	if log, ok := <-wc.dataCh; ok {
+		return log, nil
+	}
+	return common.Log{}, ErrChannelClosed
+}
+
+func (wc *watchChannel) Close() {
+	wc.closeCh <- struct{}{}
 }
