@@ -30,6 +30,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/alanchchen/web3go/rpc"
@@ -37,7 +38,7 @@ import (
 
 func generateResponse(rpc rpc.RPC, request rpc.Request, result interface{}) (response rpc.Response, err error) {
 	data := struct {
-		Version string      `json:"version"`
+		Version string      `json:"jsonrpc"`
 		ID      uint64      `json:"id"`
 		Result  interface{} `json:"result"`
 	}{
@@ -45,7 +46,11 @@ func generateResponse(rpc rpc.RPC, request rpc.Request, result interface{}) (res
 		request.ID(),
 		result,
 	}
-	if resp := rpc.NewResponse(data); resp != nil {
+	rawData, err := json.Marshal(data)
+	if err != nil {
+		return nil, err
+	}
+	if resp := rpc.NewResponse(rawData); resp != nil {
 		return resp, nil
 	}
 	return nil, fmt.Errorf("Failed to generate response")
