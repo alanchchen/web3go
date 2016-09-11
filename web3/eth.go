@@ -104,6 +104,11 @@ func (eth *EthAPI) ProtocolVersion() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	if resp.Error() != nil {
+		return "", resp.Error()
+	}
+
 	return resp.Get("result").(string), nil
 }
 
@@ -116,6 +121,12 @@ func (eth *EthAPI) Syncing() (common.SyncStatus, error) {
 		return common.SyncStatus{
 			Result: false,
 		}, err
+	}
+
+	if resp.Error() != nil {
+		return common.SyncStatus{
+			Result: false,
+		}, resp.Error()
 	}
 
 	result := resp.Get("result")
@@ -149,6 +160,11 @@ func (eth *EthAPI) Coinbase() (addr common.Address, err error) {
 	if err != nil {
 		return common.NewAddress(nil), err
 	}
+
+	if resp.Error() != nil {
+		return common.NewAddress(nil), resp.Error()
+	}
+
 	return common.StringToAddress(resp.Get("result").(string)), nil
 }
 
@@ -159,6 +175,11 @@ func (eth *EthAPI) Mining() (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
+	if resp.Error() != nil {
+		return false, resp.Error()
+	}
+
 	return resp.Get("result").(bool), nil
 }
 
@@ -170,6 +191,11 @@ func (eth *EthAPI) HashRate() (uint64, error) {
 	if err != nil {
 		return 0, err
 	}
+
+	if resp.Error() != nil {
+		return 0, resp.Error()
+	}
+
 	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		return 0, err
@@ -184,6 +210,11 @@ func (eth *EthAPI) GasPrice() (result *big.Int, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -199,6 +230,11 @@ func (eth *EthAPI) Accounts() (addrs []common.Address, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	results := resp.Get("result").([]interface{})
 	for _, r := range results {
 		addrs = append(addrs, common.StringToAddress(r.(string)))
@@ -213,6 +249,11 @@ func (eth *EthAPI) BlockNumber() (result *big.Int, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -229,6 +270,11 @@ func (eth *EthAPI) GetBalance(address common.Address, quantity string) (result *
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -245,6 +291,11 @@ func (eth *EthAPI) GetStorageAt(address common.Address, position uint64, quantit
 	if err != nil {
 		return 0, err
 	}
+
+	if resp.Error() != nil {
+		return 0, resp.Error()
+	}
+
 	result, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		return 0, err
@@ -260,6 +311,11 @@ func (eth *EthAPI) GetTransactionCount(address common.Address, quantity string) 
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -277,6 +333,11 @@ func (eth *EthAPI) GetBlockTransactionCountByHash(hash common.Hash) (result *big
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -294,6 +355,11 @@ func (eth *EthAPI) GetBlockTransactionCountByNumber(quantity string) (result *bi
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -311,6 +377,11 @@ func (eth *EthAPI) GetUncleCountByBlockHash(hash common.Hash) (result *big.Int, 
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -328,6 +399,11 @@ func (eth *EthAPI) GetUncleCountByBlockNumber(quantity string) (result *big.Int,
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -344,6 +420,11 @@ func (eth *EthAPI) GetCode(address common.Address, quantity string) ([]byte, err
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	return common.HexToBytes(resp.Get("result").(string)), nil
 }
 
@@ -355,6 +436,11 @@ func (eth *EthAPI) Sign(address common.Address, data []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	return common.HexToBytes(resp.Get("result").(string)), nil
 }
 
@@ -367,6 +453,11 @@ func (eth *EthAPI) SendTransaction(tx *common.TransactionRequest) (hash common.H
 	if err != nil {
 		return common.NewHash(nil), err
 	}
+
+	if resp.Error() != nil {
+		return common.NewHash(nil), resp.Error()
+	}
+
 	return common.StringToHash(resp.Get("result").(string)), nil
 }
 
@@ -379,6 +470,11 @@ func (eth *EthAPI) SendRawTransaction(tx []byte) (hash common.Hash, err error) {
 	if err != nil {
 		return common.NewHash(nil), err
 	}
+
+	if resp.Error() != nil {
+		return common.NewHash(nil), resp.Error()
+	}
+
 	return common.StringToHash(resp.Get("result").(string)), nil
 }
 
@@ -391,6 +487,11 @@ func (eth *EthAPI) Call(tx *common.TransactionRequest, quantity string) ([]byte,
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	return common.HexToBytes(resp.Get("result").(string)), nil
 }
 
@@ -404,6 +505,11 @@ func (eth *EthAPI) EstimateGas(tx *common.TransactionRequest, quantity string) (
 	if err != nil {
 		return nil, err
 	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result = new(big.Int)
 	_, ok := result.SetString(common.HexToString(resp.Get("result").(string)), 16)
 	if !ok {
@@ -419,6 +525,10 @@ func (eth *EthAPI) GetBlockByHash(hash common.Hash, full bool) (*common.Block, e
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	result := &jsonBlock{}
@@ -438,6 +548,10 @@ func (eth *EthAPI) GetBlockByNumber(quantity string, full bool) (*common.Block, 
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	result := &jsonBlock{}
@@ -460,6 +574,10 @@ func (eth *EthAPI) GetTransactionByHash(hash common.Hash) (*common.Transaction, 
 		return nil, err
 	}
 
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result := &jsonTransaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
@@ -478,6 +596,10 @@ func (eth *EthAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, index uin
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	result := &jsonTransaction{}
@@ -500,6 +622,10 @@ func (eth *EthAPI) GetTransactionByBlockNumberAndIndex(quantity string, index ui
 		return nil, err
 	}
 
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result := &jsonTransaction{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
@@ -517,6 +643,10 @@ func (eth *EthAPI) GetTransactionReceipt(hash common.Hash) (*common.TransactionR
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	result := &jsonTransactionReceipt{}
@@ -539,6 +669,10 @@ func (eth *EthAPI) GetUncleByBlockHashAndIndex(hash common.Hash, index uint64) (
 		return nil, err
 	}
 
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
@@ -559,6 +693,10 @@ func (eth *EthAPI) GetUncleByBlockNumberAndIndex(quantity string, index uint64) 
 		return nil, err
 	}
 
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	result := &jsonBlock{}
 	if jsonBytes, err := json.Marshal(resp.Get("result")); err == nil {
 		if err := json.Unmarshal(jsonBytes, result); err == nil {
@@ -577,6 +715,10 @@ func (eth *EthAPI) GetCompilers() (result []string, err error) {
 		return nil, err
 	}
 
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	for _, r := range resp.Get("result").([]interface{}) {
 		result = append(result, r.(string))
 	}
@@ -588,10 +730,17 @@ func (eth *EthAPI) GetCompilers() (result []string, err error) {
 // eth_getFilterChanges.
 func (eth *EthAPI) NewFilter(option *FilterOption) (Filter, error) {
 	req := eth.requestManager.newRequest("eth_newFilter")
+	if option == nil {
+		option = &FilterOption{}
+	}
 	req.Set("params", option)
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
@@ -608,6 +757,10 @@ func (eth *EthAPI) NewBlockFilter() (*BlockFilter, error) {
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
@@ -627,6 +780,10 @@ func (eth *EthAPI) NewPendingTransactionFilter() (*PendingTransactionFilter, err
 		return nil, err
 	}
 
+	if resp.Error() != nil {
+		return nil, resp.Error()
+	}
+
 	id, err := strconv.ParseUint(common.HexToString(resp.Get("result").(string)), 16, 64)
 	if err != nil {
 		return nil, err
@@ -639,10 +796,14 @@ func (eth *EthAPI) NewPendingTransactionFilter() (*PendingTransactionFilter, err
 // requested with eth_getFilterChanges for a period of time.
 func (eth *EthAPI) UninstallFilter(filter Filter) (bool, error) {
 	req := eth.requestManager.newRequest("eth_uninstallFilter")
-	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
+	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return false, err
+	}
+
+	if resp.Error() != nil {
+		return false, resp.Error()
 	}
 
 	return resp.Get("result").(bool), nil
@@ -652,10 +813,14 @@ func (eth *EthAPI) UninstallFilter(filter Filter) (bool, error) {
 // which occurred since last poll.
 func (eth *EthAPI) GetFilterChanges(filter Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterChanges")
-	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
+	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	logs := resp.Get("result").([]interface{})
@@ -677,10 +842,14 @@ func (eth *EthAPI) GetFilterChanges(filter Filter) (result []common.Log, err err
 // GetFilterLogs returns an array of all logs matching filter with given id.
 func (eth *EthAPI) GetFilterLogs(filter Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getFilterLogs")
-	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
+	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	logs := resp.Get("result").([]interface{})
@@ -702,10 +871,14 @@ func (eth *EthAPI) GetFilterLogs(filter Filter) (result []common.Log, err error)
 // GetLogs returns an array of all logs matching a given filter object.
 func (eth *EthAPI) GetLogs(filter Filter) (result []common.Log, err error) {
 	req := eth.requestManager.newRequest("eth_getLogs")
-	req.Set("param", fmt.Sprintf("0x%x", filter.ID()))
+	req.Set("params", fmt.Sprintf("0x%x", filter.ID()))
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return nil, err
+	}
+
+	if resp.Error() != nil {
+		return nil, resp.Error()
 	}
 
 	logs := resp.Get("result").([]interface{})
@@ -733,6 +906,10 @@ func (eth *EthAPI) GetWork() (header, seed, boundary common.Hash, err error) {
 		return common.NewHash(nil), common.NewHash(nil), common.NewHash(nil), err
 	}
 
+	if resp.Error() != nil {
+		return common.NewHash(nil), common.NewHash(nil), common.NewHash(nil), resp.Error()
+	}
+
 	results := resp.Get("result").([]interface{})
 	header = common.StringToHash(results[0].(string))
 	seed = common.StringToHash(results[1].(string))
@@ -751,6 +928,10 @@ func (eth *EthAPI) SubmitWork(nonce uint64, header, mixDigest common.Hash) (bool
 	resp, err := eth.requestManager.send(req)
 	if err != nil {
 		return false, err
+	}
+
+	if resp.Error() != nil {
+		return false, resp.Error()
 	}
 
 	return resp.Get("result").(bool), nil

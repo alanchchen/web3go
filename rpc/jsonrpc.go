@@ -45,10 +45,10 @@ var (
 
 // JSONRPCRequest ...
 type JSONRPCRequest struct {
-	Version    string   `json:"version,omitempty"`
-	Method     string   `json:"method"`
-	Params     []string `json:"params"`
-	Identifier uint64   `json:"id"`
+	Version    string        `json:"jsonrpc,omitempty"`
+	Method     string        `json:"method"`
+	Params     []interface{} `json:"params"`
+	Identifier uint64        `json:"id"`
 }
 
 // Set ...
@@ -66,7 +66,7 @@ func (req *JSONRPCRequest) Set(key string, value interface{}) {
 				req.Params = append(req.Params, v.Index(i).String())
 			}
 		default:
-			req.Params = append(req.Params, fmt.Sprintf("%v", value))
+			req.Params = append(req.Params, value)
 		}
 	}
 }
@@ -101,11 +101,22 @@ func (req *JSONRPCRequest) ID() uint64 {
 
 // -----------------------------------------------------------------------------
 
+// JSONRPCError ...
+type JSONRPCError struct {
+	Code    int64  `json:"code"`
+	Message string `json:"message"`
+}
+
+func (err *JSONRPCError) Error() string {
+	return err.Message
+}
+
 // JSONRPCResponse ...
 type JSONRPCResponse struct {
-	Version    string      `json:"version"`
-	Identifier uint64      `json:"id"`
-	Result     interface{} `json:"result"`
+	Version    string        `json:"jsonrpc"`
+	Identifier uint64        `json:"id"`
+	Result     interface{}   `json:"result"`
+	Err        *JSONRPCError `json:"error,omitempty"`
 }
 
 // Get ...
@@ -118,6 +129,8 @@ func (resp *JSONRPCResponse) Get(key string) interface{} {
 		return resp.Identifier
 	case "result":
 		return resp.Result
+	case "error":
+		return resp.Err
 	}
 
 	return nil
@@ -132,6 +145,13 @@ func (resp *JSONRPCResponse) String() string {
 // ID ...
 func (resp *JSONRPCResponse) ID() uint64 {
 	return resp.Identifier
+}
+
+func (resp *JSONRPCResponse) Error() error {
+	if resp.Err != nil && resp.Err.Code != 0 {
+		return resp.Err
+	}
+	return nil
 }
 
 // -----------------------------------------------------------------------------
@@ -154,6 +174,7 @@ func (rpc *JSONRPC) Name() string {
 // NewRequest ...
 func (rpc *JSONRPC) NewRequest(method string, args ...interface{}) Request {
 	request := &JSONRPCRequest{Version: version, Method: method, Identifier: rpc.newID()}
+	request.Params = make([]interface{}, 0)
 	for _, arg := range args {
 		request.Params = append(request.Params, fmt.Sprintf("%v", arg))
 	}
@@ -161,26 +182,12 @@ func (rpc *JSONRPC) NewRequest(method string, args ...interface{}) Request {
 }
 
 // NewResponse ...
-func (rpc *JSONRPC) NewResponse(data interface{}) Response {
-	response := &JSONRPCResponse{}
-	switch data.(type) {
-	case string:
-		d := []byte(data.(string))
-		if err := json.Unmarshal(d, response); err == nil {
-			return response
-		}
-	case []byte:
-		d := data.([]byte)
-		if err := json.Unmarshal(d, response); err == nil {
-			return response
-		}
-	default:
-		if b, err := json.Marshal(data); err == nil {
-			if err := json.Unmarshal(b, response); err == nil {
-				return response
-			}
-		}
+func (rpc *JSONRPC) NewResponse(data []byte) Response {
+	resp := &JSONRPCResponse{}
+	if err := json.Unmarshal(data, &resp); err == nil {
+		return resp
 	}
+
 	return nil
 }
 

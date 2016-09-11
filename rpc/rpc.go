@@ -42,13 +42,14 @@ type Response interface {
 	Get(key string) interface{}
 	String() string
 	ID() uint64
+	Error() error
 }
 
 // RPC defines basic methods of variety RPCs
 type RPC interface {
 	Name() string
 	NewRequest(method string, args ...interface{}) Request
-	NewResponse(data interface{}) Response
+	NewResponse(data []byte) Response
 }
 
 // GetDefaultMethod ...
