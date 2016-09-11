@@ -30,6 +30,7 @@
 package web3
 
 import (
+	"encoding/json"
 	"math/big"
 	"strings"
 	"testing"
@@ -522,8 +523,16 @@ func (suite *EthTestSuite) Test_GetFilterChanges() {
 		},
 	}
 	returnedLogs, err := eth.GetFilterChanges(filter)
-	assert.NoError(suite.T(), err, "Should be no error")
-	assert.EqualValues(suite.T(), logs, returnedLogs, "Should be equal")
+	if assert.NoError(suite.T(), err, "Should be no error") {
+		for i, l := range returnedLogs {
+			log := common.Log{}
+			rawBytes, err := json.Marshal(l)
+			assert.NoError(suite.T(), err, "Should be no error")
+			err = json.Unmarshal(rawBytes, &log)
+			assert.NoError(suite.T(), err, "Should be no error")
+			assert.EqualValues(suite.T(), logs[i], log, "Should be equal")
+		}
+	}
 }
 
 func (suite *EthTestSuite) Test_GetFilterLogs() {
@@ -547,8 +556,16 @@ func (suite *EthTestSuite) Test_GetFilterLogs() {
 		},
 	}
 	returnedLogs, err := eth.GetFilterLogs(filter)
-	assert.NoError(suite.T(), err, "Should be no error")
-	assert.EqualValues(suite.T(), logs, returnedLogs, "Should be equal")
+	if assert.NoError(suite.T(), err, "Should be no error") {
+		for i, l := range returnedLogs {
+			log := common.Log{}
+			rawBytes, err := json.Marshal(l)
+			assert.NoError(suite.T(), err, "Should be no error")
+			err = json.Unmarshal(rawBytes, &log)
+			assert.NoError(suite.T(), err, "Should be no error")
+			assert.EqualValues(suite.T(), logs[i], log, "Should be equal")
+		}
+	}
 }
 
 func (suite *EthTestSuite) Test_GetLogs() {
@@ -572,8 +589,16 @@ func (suite *EthTestSuite) Test_GetLogs() {
 		},
 	}
 	returnedLogs, err := eth.GetLogs(filter)
-	assert.NoError(suite.T(), err, "Should be no error")
-	assert.EqualValues(suite.T(), logs, returnedLogs, "Should be equal")
+	if assert.NoError(suite.T(), err, "Should be no error") {
+		for i, l := range returnedLogs {
+			log := common.Log{}
+			rawBytes, err := json.Marshal(l)
+			assert.NoError(suite.T(), err, "Should be no error")
+			err = json.Unmarshal(rawBytes, &log)
+			assert.NoError(suite.T(), err, "Should be no error")
+			assert.EqualValues(suite.T(), logs[i], log, "Should be equal")
+		}
+	}
 }
 
 func (suite *EthTestSuite) Test_GetWork() {
