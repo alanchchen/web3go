@@ -1,4 +1,6 @@
 # web3go
+
+[![Join the chat at https://gitter.im/alanchchen/web3go](https://badges.gitter.im/alanchchen/web3go.svg)](https://gitter.im/alanchchen/web3go?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 `web3go` is an [Ethereum](https://github.com/ethereum/go-ethereum) client library that implements [Ethereum JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC), just like [web3.js](https://githu
 b.com/ethereum/web3.js).
 
