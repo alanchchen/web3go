@@ -1,4 +1,4 @@
-# web3go
+# web3go (obsolete)
 `web3go` is an [Ethereum](https://github.com/ethereum/go-ethereum) client library that implements [Ethereum JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC), just like [web3.js](https://githu
 b.com/ethereum/web3.js).
 
